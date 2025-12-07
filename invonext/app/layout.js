@@ -52,10 +52,7 @@ export const metadata = {
     images: ["/og-image.png"],
   },
 
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0c0c" },
-  ],
+ 
 };
 
 export default function RootLayout({ children }) {
