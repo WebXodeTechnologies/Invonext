@@ -1,5 +1,13 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,43 +59,44 @@ export const metadata = {
       "A powerful, minimal invoice generator with GST support and custom PDF templates.",
     images: ["/og-image.png"],
   },
-
- 
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* JSON-LD STRUCTURED DATA */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: "InvoNext",
-              operatingSystem: "Web",
-              applicationCategory: "BusinessApplication",
-              description:
-                "A modern invoice generator for Indian businesses with GST support, revenue tracking and client management.",
-              offers: {
-                "@type": "Offer",
-                price: "0",
-                priceCurrency: "INR",
-              },
-            }),
-          }}
-        />
-      </head>
+          {/* JSON-LD STRUCTURED DATA */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                name: "InvoNext",
+                operatingSystem: "Web",
+                applicationCategory: "BusinessApplication",
+                description:
+                  "A modern invoice generator for Indian businesses with GST support, revenue tracking and client management.",
+                offers: {
+                  "@type": "Offer",
+                  price: "0",
+                  priceCurrency: "INR",
+                },
+              }),
+            }}
+          />
+        </head>
 
-      <body
-        className={`${inter.variable} antialiased bg-white dark:bg-[#000000] text-black dark:text-white`}
-      >
-        {children}
-      </body>
-    </html>
+        <body
+          className={`${inter.variable} antialiased bg-white dark:bg-[#000000] text-black dark:text-white`}
+        >
+          
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
