@@ -1,13 +1,9 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
+  ClerkProvider
 } from "@clerk/nextjs";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,6 +58,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
@@ -91,9 +88,7 @@ export default function RootLayout({ children }) {
         </head>
 
         <body
-          className={`${inter.variable} antialiased bg-white dark:bg-[#000000] text-black dark:text-white`}
-        >
-          
+          className={`${inter.variable} antialiased`}>
           {children}
         </body>
       </html>
