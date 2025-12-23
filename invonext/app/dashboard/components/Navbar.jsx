@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import ThemeSwitcher from "../ThemeSwitcher";
-
+import { useClerk } from "@clerk/nextjs";
 import {
   Bell,
   Maximize2,
@@ -27,11 +27,42 @@ const Navbar = () => {
   const [openProfile, setOpenProfile] = useState(false);
   const [openNotif, setOpenNotif] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const { signOut } = useClerk();
+
+  /* ------------------ HANDLERS ------------------ */
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const handleNewInvoice = () => {
+    setMobileMenu(false);
+  };
+
+  const handleProfile = () => {
+    setOpenProfile(false);
+    setMobileMenu(false);
+  };
+
+  const handleSettings = () => {
+    setOpenProfile(false);
+    setMobileMenu(false);
+  };
+
+const handleLogout = async () => {
+  await signOut({ redirectUrl: "/sign-in" });
+};
+
+  /* ------------------ UI ------------------ */
 
   return (
     <header className="w-[90%] md:w-[80%] mx-auto py-4">
       <div className="flex items-center justify-between h-16 px-4 rounded-xl bg-transparent">
-        {/* LEFT — BRAND */}
+        {/* BRAND */}
         <div className="flex items-center gap-3">
           <Image
             src="/Logo/blog-svgrepo-com (1).svg"
@@ -40,23 +71,21 @@ const Navbar = () => {
             alt="logo"
             className="rounded-md"
           />
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight italic">
+          <h2 className="text-2xl md:text-3xl font-semibold italic">
             Invo-Nxt
           </h2>
         </div>
 
-        {/* DESKTOP ACTIONS */}
+        {/* DESKTOP */}
         <div className="hidden md:flex items-center gap-6">
-          {/* NEW INVOICE */}
-          <Link href="/invoice/create">
-            <button className="bg-white hover:bg-gray-100 text-black dark:bg-white px-5 py-2 rounded-lg font-medium transition-all shadow-sm">
+          <Link href="/invoice/create" onClick={handleNewInvoice}>
+            <button className="bg-white hover:bg-gray-100 text-black px-5 py-2 rounded-lg font-medium shadow-sm">
               + New Invoice
             </button>
           </Link>
 
-          {/* FULLSCREEN */}
           <button
-            onClick={() => document.documentElement.requestFullscreen()}
+            onClick={toggleFullscreen}
             className="p-2 rounded-lg hover:bg-gray-200 transition"
           >
             <Maximize2 size={22} />
@@ -69,24 +98,21 @@ const Navbar = () => {
                 setOpenNotif(!openNotif);
                 setOpenProfile(false);
               }}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition relative"
+              className="p-2 rounded-lg hover:bg-gray-100 relative"
             >
               <Bell size={22} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
             </button>
 
-            {/* NOTIFICATION DROPDOWN */}
             {openNotif && (
-              <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-white shadow-xl rounded-xl p-3 border border-gray-100 dark:border-gray-700 z-40">
-                <h3 className="font-semibold mb-2 text-sm text-white dark:text-black">
-                  Notifications
-                </h3>
+              <div className="absolute right-0 mt-3 w-72 bg-white shadow-xl rounded-xl p-3 z-40">
+                <h3 className="font-semibold mb-2 text-sm">Notifications</h3>
                 <div className="space-y-1">
                   {notifications.map((n) => (
                     <Link
                       key={n.id}
                       href={n.link}
-                      className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-black text-sm"
+                      className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
                     >
                       {n.text}
                     </Link>
@@ -96,47 +122,51 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* THEME SWITCHER */}
           <ThemeSwitcher />
 
-          {/* PROFILE DROPDOWN */}
+          {/* PROFILE */}
           <div className="relative">
             <button
               onClick={() => {
                 setOpenProfile(!openProfile);
                 setOpenNotif(false);
               }}
-              className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-200 transition"
+              className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100"
             >
               <Image
                 src="/assets/navbar/hacker.png"
                 alt="avatar"
                 width={40}
                 height={40}
-                className="rounded-full shadow-sm"
+                className="rounded-full"
               />
               <ChevronDown size={20} />
             </button>
 
             {openProfile && (
-              <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-gray-200 shadow-xl rounded-xl p-3 border border-gray-100 dark:border-gray-700 z-40 text-white dark:text-black">
+              <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl p-3 z-40">
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200"
+                  onClick={handleProfile}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
                   <User size={18} /> My Profile
                 </Link>
 
                 <Link
                   href="/settings"
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200"
+                  onClick={handleSettings}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
                   <Settings size={18} /> Settings
                 </Link>
 
-                <hr className="my-2 border-gray-300 dark:border-gray-700" />
+                <hr className="my-2" />
 
-                <button className="flex items-center gap-2 w-full px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100"
+                >
                   <LogOut size={18} /> Sign Out
                 </button>
               </div>
@@ -144,21 +174,22 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* MOBILE MENU ICON */}
+        {/* MOBILE ICON */}
         <button
           onClick={() => setMobileMenu(!mobileMenu)}
-          className="md:hidden block p-2"
+          className="md:hidden p-2"
         >
           {mobileMenu ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
-      {/* MOBILE MENU PANEL */}
+      {/* MOBILE MENU */}
       {mobileMenu && (
-        <div className="md:hidden mt-4 bg-white dark:bg-gray-200 p-4 rounded-xl shadow-lg text-white dark:text-black">
+        <div className="md:hidden mt-4 bg-white p-4 rounded-xl shadow-lg">
           <Link
             href="/invoice/create"
-            className="block px-4 py-2 rounded-lg bg-white text-black font-medium text-center mb-3"
+            onClick={handleNewInvoice}
+            className="block px-4 py-2 rounded-lg bg-gray-100 text-center mb-3"
           >
             + New Invoice
           </Link>
@@ -170,41 +201,39 @@ const Navbar = () => {
 
           <hr className="my-2" />
 
-          {/* Notifications */}
-          <div>
-            <h3 className="font-semibold text-sm mb-2">Notifications</h3>
-
-            <div className="space-y-2">
-              {notifications.map((n) => (
-                <Link
-                  key={n.id}
-                  href={n.link}
-                  className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 text-sm"
-                >
-                  {n.text}
-                </Link>
-              ))}
-            </div>
-          </div>
+          <h3 className="font-semibold text-sm mb-2">Notifications</h3>
+          {notifications.map((n) => (
+            <Link
+              key={n.id}
+              href={n.link}
+              className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+            >
+              {n.text}
+            </Link>
+          ))}
 
           <hr className="my-2" />
 
-          {/* Profile Actions */}
           <Link
             href="/profile"
-            className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200"
+            onClick={handleProfile}
+            className="block px-3 py-2 rounded-lg hover:bg-gray-100"
           >
             My Profile
           </Link>
 
           <Link
             href="/settings"
-            className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200"
+            onClick={handleSettings}
+            className="block px-3 py-2 rounded-lg hover:bg-gray-100"
           >
             Settings
           </Link>
 
-          <button className="w-full flex items-center gap-2 px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 mt-2">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100 mt-2"
+          >
             <LogOut size={18} /> Sign Out
           </button>
         </div>
