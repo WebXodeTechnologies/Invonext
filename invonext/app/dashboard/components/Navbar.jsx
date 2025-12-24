@@ -78,7 +78,7 @@ const handleLogout = async () => {
 
         {/* DESKTOP */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/invoice/create" onClick={handleNewInvoice}>
+          <Link href="/dashboard/Invoices" onClick={handleNewInvoice}>
             <button className="bg-white hover:bg-gray-100 text-black px-5 py-2 rounded-lg font-medium shadow-sm">
               + New Invoice
             </button>
@@ -146,7 +146,7 @@ const handleLogout = async () => {
             {openProfile && (
               <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl p-3 z-40">
                 <Link
-                  href="/profile"
+                  href="/dashboard/profile"
                   onClick={handleProfile}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
@@ -154,7 +154,7 @@ const handleLogout = async () => {
                 </Link>
 
                 <Link
-                  href="/settings"
+                  href="/dashboard/settings"
                   onClick={handleSettings}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
