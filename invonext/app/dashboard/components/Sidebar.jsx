@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 
-
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Clients", href: "/dashboard/clients", icon: Users },
@@ -28,30 +27,32 @@ const NAV_ITEMS = [
 export default function Layout({ children }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  
 
   const isActiveRoute = (href) => pathname === href;
 
   return (
     <div className="">
       {/* Sidebar */}
-       <aside
-      className={`
+      <aside
+        className={`
         sticky top-16 h-[calc(100vh-4rem)]
         bg-white border-r border-gray-200
         transition-all duration-300 py-5
         ${collapsed ? "w-20" : "w-80"}
          md:flex flex-col
       `}
-    >
+      >
         {/* Brand */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-           
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="text-lg font-semibold text-gray-900">InvoNxt</span>
-                <span className="text-xs text-gray-500">Invoice Management</span>
+                <span className="text-lg font-semibold text-gray-900">
+                  InvoNxt
+                </span>
+                <span className="text-xs text-gray-500">
+                  Invoice Management
+                </span>
               </div>
             )}
           </div>
@@ -73,9 +74,11 @@ export default function Layout({ children }) {
                 key={item.label}
                 href={item.href}
                 className={`group flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition
-                  ${isActive
-                    ? "bg-indigo-50 text-indigo-600 shadow"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-indigo-600"}`}
+                  ${
+                    isActive
+                      ? "bg-indigo-50 text-indigo-600 shadow"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
+                  }`}
               >
                 <Icon
                   size={18}
@@ -102,7 +105,9 @@ export default function Layout({ children }) {
 
       {/* Main content area */}
       <div
-        className={`flex-1 ml-${collapsed ? "20" : "64"} transition-all duration-300 flex flex-col`}
+        className={`flex-1 ml-${
+          collapsed ? "20" : "64"
+        } transition-all duration-300 flex flex-col`}
       >
         {/* Fixed Navbar */}
         <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md z-30 flex items-center px-6">
@@ -110,9 +115,7 @@ export default function Layout({ children }) {
         </header>
 
         {/* Page content */}
-        <main className="mt-16 p-6 overflow-auto h-full">
-          {children}
-        </main>
+        <main className="mt-16 p-6 overflow-auto h-full">{children}</main>
       </div>
     </div>
   );

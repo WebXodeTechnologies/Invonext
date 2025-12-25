@@ -36,7 +36,7 @@ const Greet = ({ userName }) => {
 
       {/* Emoji / Illustration */}
       <div className="hidden sm:block">
-         <Image
+        <Image
           src="/assets/dashboard/love.png" // <-- Use public path
           alt="Motivational Emoji"
           width={60}
