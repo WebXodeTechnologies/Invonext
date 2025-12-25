@@ -17,14 +17,19 @@ const ClientSchema = new mongoose.Schema(
     email: {
       type: String,
       trim: true,
+      lowercase: true,
+      index: true,
     },
 
     phone: {
       type: String,
+      match: /^[6-9]\d{9}$/,
     },
 
     gstNumber: {
       type: String,
+      uppercase: true,
+      index: true,
     },
 
     address: {
@@ -32,12 +37,19 @@ const ClientSchema = new mongoose.Schema(
       line2: { type: String },
       city: { type: String, required: true },
       state: { type: String, required: true },
-      pincode: { type: String, required: true },
+      pincode: {
+        type: String,
+        required: true,
+        match: /^\d{6}$/,
+      },
       country: { type: String, default: "India" },
     },
   },
   { timestamps: true }
 );
+
+// Optional but smart
+ClientSchema.index({ userId: 1, email: 1 });
 
 export default mongoose.models.Client ||
   mongoose.model("Client", ClientSchema);
