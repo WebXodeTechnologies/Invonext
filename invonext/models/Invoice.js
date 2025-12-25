@@ -17,7 +17,6 @@ const InvoiceSchema = new mongoose.Schema(
     invoiceNumber: {
       type: String,
       required: true,
-      unique: true,
     },
 
     issueDate: {
@@ -43,17 +42,17 @@ const InvoiceSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
-    taxPercent: {
-      type: Number,
-      default: 18, // GST default
+    
+    tax: {
+      type: {
+        type: String,
+        enum: ["NONE", "CGST_SGST", "IGST"],
+        default: "CGST_SGST",
+      },
+      percent: Number,
+      amount: Number,
     },
-
-    taxAmount: {
-      type: Number,
-      required: true,
-    },
-
+    
     totalAmount: {
       type: Number,
       required: true,
