@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Bell, Maximize2, LogOut, Settings, User, Menu, X, ChevronDown } from "lucide-react";
 
 const ROUTES = {
@@ -26,6 +27,8 @@ export default function Navbar() {
   const [openNotif, setOpenNotif] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const { signOut } = useClerk();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -42,14 +45,17 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await signOut({ redirectUrl: "/sign-in" });
+    setLoading(true);
+    await signOut();
+    router.push("/sign-in");
+    setLoading(false);
   };
 
   return (
-    <header className="w-full bg-white shadow-md  px-4 py-4 md:px-8 flex items-center justify-between">
+    <header className="w-full bg-white shadow-md px-4 py-4 md:px-8 flex items-center justify-between">
       {/* BRAND */}
       <div className="flex items-center gap-3">
-        <Image src="/Logo/blog-svgrepo-com (1).svg" width={40} height={40} alt="Invo-Nxt Logo"  />
+        <Image src="/Logo/blog-svgrepo-com (1).svg" width={40} height={40} alt="Invo-Nxt Logo" />
         <h2 className="text-xl sm:text-2xl font-semibold italic text-gray-900 md:hidden lg:block">
           InvoNxt
         </h2>
@@ -69,8 +75,10 @@ export default function Navbar() {
 
         {/* Notifications */}
         <div className="relative">
-          <button onClick={() => { setOpenNotif(!openNotif); setOpenProfile(false); }}
-            className="p-2 rounded-lg hover:bg-gray-100 transition relative">
+          <button
+            onClick={() => { setOpenNotif(!openNotif); setOpenProfile(false); }}
+            className="p-2 rounded-lg hover:bg-gray-100 transition relative"
+          >
             <Bell size={22} />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
           </button>
@@ -79,7 +87,12 @@ export default function Navbar() {
             <div className="absolute right-0 mt-3 w-72 bg-white shadow-lg rounded-xl p-3 z-50">
               <h3 className="font-semibold mb-2 text-sm text-gray-900">Notifications</h3>
               {notifications.map(n => (
-                <Link key={n.id} href={n.link} onClick={closeMenus} className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700">
+                <Link
+                  key={n.id}
+                  href={n.link}
+                  onClick={closeMenus}
+                  className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-sm text-gray-700"
+                >
                   {n.text}
                 </Link>
               ))}
@@ -89,25 +102,39 @@ export default function Navbar() {
 
         {/* Profile */}
         <div className="relative">
-          <button onClick={() => { setOpenProfile(!openProfile); setOpenNotif(false); }}
-            className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
+          <button
+            onClick={() => { setOpenProfile(!openProfile); setOpenNotif(false); }}
+            className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition"
+          >
             <Image src="/assets/navbar/hacker.png" alt="Avatar" width={36} height={36} className="rounded-full" />
             <ChevronDown size={18} />
           </button>
 
           {openProfile && (
             <div className="absolute right-0 mt-3 w-48 bg-white shadow-lg rounded-xl p-3 z-50">
-              <Link href={ROUTES.profile} onClick={closeMenus} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+              <Link
+                href={ROUTES.profile}
+                onClick={closeMenus}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+              >
                 <User size={18} /> My Profile
               </Link>
 
-              <Link href={ROUTES.settings} onClick={closeMenus} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+              <Link
+                href={ROUTES.settings}
+                onClick={closeMenus}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+              >
                 <Settings size={18} /> Settings
               </Link>
 
               <hr className="my-2 border-gray-200" />
 
-              <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100">
+              <button
+                onClick={handleLogout}
+                disabled={loading}
+                className="flex items-center gap-2 w-full px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100"
+              >
                 <LogOut size={18} /> Sign Out
               </button>
             </div>
@@ -120,11 +147,13 @@ export default function Navbar() {
         {mobileMenu ? <X size={28} /> : <Menu size={28} />}
       </button>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE MENU BACKDROP */}
       <div
         className={`fixed inset-0 z-40 bg-black bg-opacity-30 transition-opacity ${mobileMenu ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={() => setMobileMenu(false)}
       />
+
+      {/* MOBILE MENU */}
       <div
         className={`fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform ${mobileMenu ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -152,7 +181,7 @@ export default function Navbar() {
           <hr className="border-gray-200" />
           <Link href={ROUTES.profile} onClick={() => setMobileMenu(false)} className="block px-3 py-2 rounded-lg hover:bg-gray-100">My Profile</Link>
           <Link href={ROUTES.settings} onClick={() => setMobileMenu(false)} className="block px-3 py-2 rounded-lg hover:bg-gray-100">Settings</Link>
-          <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100">
+          <button onClick={handleLogout} disabled={loading} className="w-full flex items-center gap-2 px-3 py-2 text-red-500 rounded-lg hover:bg-gray-100">
             <LogOut size={18} /> Sign Out
           </button>
         </nav>
