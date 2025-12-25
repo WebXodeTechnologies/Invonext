@@ -10,11 +10,12 @@ import {
   FileText,
   BarChart3,
   Settings,
-  X,
-  Menu,
+  ChevronLeft,
   ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
-import Logo from "@/public/Logo/blog-svgrepo-com.svg";
+
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -24,129 +25,58 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export default function Sidebar() {
+export default function Layout({ children }) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  
 
   const isActiveRoute = (href) => pathname === href;
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex h-screen w-64 flex-col bg-white px-4 py-4 border-r border-gray-200 shadow-lg">
+    <div className="">
+      {/* Sidebar */}
+       <aside
+      className={`
+        sticky top-16 h-[calc(100vh-4rem)]
+        bg-white border-r border-gray-200
+        transition-all duration-300 py-5
+        ${collapsed ? "w-20" : "w-80"}
+         md:flex flex-col
+      `}
+    >
         {/* Brand */}
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-gray-200">
-          <Image
-            src="/Logo/blog-svgrepo-com (1).svg"
-            width={40}
-            height={40}
-            alt="Invo-Nxt Logo"
-          />
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold text-gray-900">InvoNxt</span>
-            <span className="text-xs text-gray-500">Invoice Management</span>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = isActiveRoute(item.href);
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
-                  ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600 shadow"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
-                  }`}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-indigo-500" />
-                )}
-                <Icon
-                  size={18}
-                  className={`${
-                    isActive
-                      ? "text-indigo-500"
-                      : "text-gray-500 group-hover:text-indigo-500"
-                  }`}
-                />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
-        <div className="px-6 py-4 text-xs text-gray-500 border-t border-gray-200">
-          © {new Date().getFullYear()} InvoNxt
-          <div className="mt-1">Built for business</div>
-        </div>
-      </aside>
-
-      {/* Mobile Toggle Button */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md"
-        onClick={() => setMobileOpen(true)}
-      >
-        <ChevronRight size={24} />
-      </button>
-
-      {/* Mobile Sidebar Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black bg-opacity-30 transition-opacity duration-300 ${
-          mobileOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        onClick={() => setMobileOpen(false)}
-      />
-
-      {/* Mobile Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Image src={Logo} alt="InvoNxt" width={32} height={32} />
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-gray-900">
-                InvoNxt
-              </span>
-              <span className="text-xs text-gray-500">Invoice Management</span>
-            </div>
+           
+            {!collapsed && (
+              <div className="flex flex-col">
+                <span className="text-lg font-semibold text-gray-900">InvoNxt</span>
+                <span className="text-xs text-gray-500">Invoice Management</span>
+              </div>
+            )}
           </div>
-          <button onClick={() => setMobileOpen(false)}>
-            <X size={24} />
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1 hover:bg-gray-100 rounded-md"
+          >
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        {/* Nav Items */}
+        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = isActiveRoute(item.href);
             const Icon = item.icon;
-
+            const isActive = isActiveRoute(item.href);
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
-                  ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600 shadow"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
-                  }`}
+                className={`group flex items-center gap-3 px-2 py-2 rounded-lg text-sm font-medium transition
+                  ${isActive
+                    ? "bg-indigo-50 text-indigo-600 shadow"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-indigo-600"}`}
               >
-                {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-indigo-500" />
-                )}
                 <Icon
                   size={18}
                   className={`${
@@ -155,18 +85,35 @@ export default function Sidebar() {
                       : "text-gray-500 group-hover:text-indigo-500"
                   }`}
                 />
-                {item.label}
+                {!collapsed && item.label}
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="px-6 py-4 text-xs text-gray-500 border-t border-gray-200">
-          © {new Date().getFullYear()} InvoNxt
-          <div className="mt-1">Built for business</div>
-        </div>
+        {!collapsed && (
+          <div className="px-4 py-4 text-xs text-gray-500 border-t border-gray-200">
+            © {new Date().getFullYear()} InvoNxt
+            <div className="mt-1">Built for business</div>
+          </div>
+        )}
       </aside>
-    </>
+
+      {/* Main content area */}
+      <div
+        className={`flex-1 ml-${collapsed ? "20" : "64"} transition-all duration-300 flex flex-col`}
+      >
+        {/* Fixed Navbar */}
+        <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md z-30 flex items-center px-6">
+          <h1 className="text-xl font-semibold">Dashboard</h1>
+        </header>
+
+        {/* Page content */}
+        <main className="mt-16 p-6 overflow-auto h-full">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

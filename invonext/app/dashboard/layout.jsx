@@ -2,31 +2,35 @@
 
 import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-
 import Sidebar from "./components/Sidebar";
-import Nav from "./components/Navbar";
+import Navbar from "./components/Navbar";
 import Providers from "./Providers";
 
 export default function DashboardLayout({ children }) {
   const { isLoaded, isSignedIn } = useUser();
 
-useEffect(() => {
-  if (isLoaded && isSignedIn) {
-    fetch("/api/user", { credentials: "include" }) // still include cookies
-      .then(res => res.json())
-      .then(data => console.log("User sync:", data))
-      .catch(err => console.error("Error syncing user:", err));
-  }
-}, [isLoaded, isSignedIn]);
-
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      fetch("/api/user", { credentials: "include" })
+        .then((res) => res.json())
+        .catch(() => {});
+    }
+  }, [isLoaded, isSignedIn]);
 
   return (
     <Providers>
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* Sidebar */}
         <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Nav />
-          <main className="flex-1 p-6 overflow-auto">{children}</main>
+
+        {/* Main Area */}
+        <div className="flex flex-col flex-1">
+          <Navbar />
+
+          {/* Page Content */}
+          <main className="flex-1 my-20 px-2 py-4 overflow-scroll">
+            {children}
+          </main>
         </div>
       </div>
     </Providers>
