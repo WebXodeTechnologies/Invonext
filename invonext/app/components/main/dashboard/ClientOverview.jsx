@@ -14,7 +14,15 @@ import {
   Legend,
 } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function ClientOverview() {
   // Revenue Data
@@ -56,14 +64,18 @@ export default function ClientOverview() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Left Column – Revenue Graph */}
       <div className="bg-white rounded-xl shadow-lg p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Revenue Chart</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Revenue Chart
+        </h3>
         <Line data={revenueData} options={revenueOptions} />
       </div>
 
       {/* Right Column – Recent Clients Table */}
       <div className="bg-white rounded-xl shadow-lg p-4 flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Recent Clients</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Recent Clients
+          </h3>
           <button className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             <UserPlus className="w-4 h-4" />
             Add Client
@@ -93,7 +105,9 @@ export default function ClientOverview() {
                   <td className="py-2 px-3">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        client.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        client.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
                       }`}
                     >
                       {client.status}

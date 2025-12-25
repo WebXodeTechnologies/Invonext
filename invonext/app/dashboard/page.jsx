@@ -1,5 +1,3 @@
-// Important for client-side components like Greet
-
 import React from "react";
 import Greet from "../components/main/dashboard/Greet";
 import StatsCards from "../components/main/dashboard/StatsCards";
@@ -14,9 +12,9 @@ export default function DashboardPage() {
     <div className="flex-1 flex flex-col">
       <Greet userName={userName} />
       <StatsCards />
-      <ClientOverview/>
-      <ClientPaymentTable/>
-      <TaskOverview/>
+      <ClientOverview />
+      <ClientPaymentTable />
+      <TaskOverview />
     </div>
   );
 }

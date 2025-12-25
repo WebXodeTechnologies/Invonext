@@ -59,7 +59,9 @@ export default function TaskOverview() {
             key={stat.title}
             className="flex items-center p-4 rounded-xl shadow-md hover:shadow-xl transition bg-white"
           >
-            <div className={`p-3 rounded-full ${stat.color} flex items-center justify-center mr-4`}>
+            <div
+              className={`p-3 rounded-full ${stat.color} flex items-center justify-center mr-4`}
+            >
               {stat.icon}
             </div>
             <div className="flex-1 text-right">
@@ -79,7 +81,10 @@ export default function TaskOverview() {
           >
             {/* Column Header */}
             <h4 className="text-gray-800 font-semibold mb-3 flex items-center justify-between">
-              {status} <span className="text-sm text-gray-500">{tasks.filter((t) => t.status === status).length}</span>
+              {status}{" "}
+              <span className="text-sm text-gray-500">
+                {tasks.filter((t) => t.status === status).length}
+              </span>
             </h4>
 
             {/* Tasks */}
@@ -92,7 +97,11 @@ export default function TaskOverview() {
                     className="p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition cursor-pointer border-l-4 border-indigo-500 flex justify-between items-center"
                   >
                     <span>{task.title}</span>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${priorityColors[task.priority]}`}>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                        priorityColors[task.priority]
+                      }`}
+                    >
                       {task.priority}
                     </span>
                   </div>
