@@ -2,10 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Bell, Maximize2, LogOut, Settings, User, Menu, X, ChevronDown } from "lucide-react";
+import {
+  Bell,
+  Maximize2,
+  LogOut,
+  Settings,
+  User,
+  Menu,
+  X,
+  ChevronDown,
+} from "lucide-react";
 
 const ROUTES = {
   dashboard: "/dashboard",
@@ -29,6 +38,27 @@ export default function Navbar() {
   const { signOut } = useClerk();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const timeoutRef = useRef(null);
+
+  const clearTimer = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+
+  useEffect(() => {
+    if (openProfile) {
+      // Clear any existing timer before starting a new one
+      clearTimer();
+
+      // Set a timer to close the profile dropdown after 5 seconds
+      timeoutRef.current = setTimeout(() => {
+        setOpenProfile(false);
+      }, 5000);
+    }
+    // Cleanup function: clears timer if component unmounts or state changes
+    return () => clearTimer();
+  }, [openProfile]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -36,6 +66,13 @@ export default function Navbar() {
     } else {
       document.exitFullscreen();
     }
+  };
+
+  // Update the toggle button to clear timer when manually clicked
+  const handleProfileToggle = () => {
+    setOpenNotif(false);
+    setOpenProfile((prev) => !prev);
+    clearTimer();
   };
 
   const closeMenus = () => {
@@ -69,7 +106,7 @@ export default function Navbar() {
       {/* DESKTOP MENU */}
       <div className="hidden md:flex items-center gap-4">
         <Link href={ROUTES.newInvoice}>
-          <button className="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 px-4 py-2 rounded-lg font-medium shadow-sm transition">
+          <button className="inline-flex items-center justify-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm">
             + New Invoice
           </button>
         </Link>
@@ -84,7 +121,10 @@ export default function Navbar() {
         {/* Notifications */}
         <div className="relative">
           <button
-            onClick={() => { setOpenNotif(!openNotif); setOpenProfile(false); }}
+            onClick={() => {
+              setOpenNotif(!openNotif);
+              setOpenProfile(false);
+            }}
             className="p-2 rounded-lg hover:bg-gray-100 transition relative"
           >
             <Bell size={22} />
@@ -92,7 +132,9 @@ export default function Navbar() {
           </button>
           {openNotif && (
             <div className="absolute right-0 mt-3 w-72 bg-white shadow-lg rounded-xl p-3 z-50">
-              <h3 className="font-semibold mb-2 text-sm text-gray-900">Notifications</h3>
+              <h3 className="font-semibold mb-2 text-sm text-gray-900">
+                Notifications
+              </h3>
               {notifications.map((n) => (
                 <Link
                   key={n.id}
@@ -110,7 +152,7 @@ export default function Navbar() {
         {/* Profile */}
         <div className="relative">
           <button
-            onClick={() => { setOpenProfile(!openProfile); setOpenNotif(false); }}
+            onClick={handleProfileToggle}
             className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition"
           >
             <Image
@@ -124,7 +166,7 @@ export default function Navbar() {
           </button>
 
           {openProfile && (
-            <div className="absolute right-0 mt-3 w-48 bg-white shadow-lg rounded-xl p-3 z-50">
+            <div className="absolute right-0 mt-3 w-48 bg-white shadow-lg rounded-xl p-3 z-50 animate-in fade-in zoom-in duration-200">
               <Link
                 href={ROUTES.profile}
                 onClick={closeMenus}
@@ -156,7 +198,10 @@ export default function Navbar() {
       </div>
 
       {/* MOBILE MENU TOGGLE */}
-      <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2 z-50">
+      <button
+        onClick={() => setMobileMenu(!mobileMenu)}
+        className="md:hidden p-2 z-50"
+      >
         {mobileMenu ? <X size={28} /> : <Menu size={28} />}
       </button>
 
@@ -182,7 +227,9 @@ export default function Navbar() {
               height={36}
               alt="Invo-Nxt Logo"
             />
-            <span className="font-semibold text-lg text-gray-900">Invo-Nxt</span>
+            <span className="font-semibold text-lg text-gray-900">
+              Invo-Nxt
+            </span>
           </div>
           <button onClick={() => setMobileMenu(false)}>
             <X size={24} />
@@ -193,7 +240,7 @@ export default function Navbar() {
           <Link
             href={ROUTES.newInvoice}
             onClick={() => setMobileMenu(false)}
-            className="block text-center bg-indigo-100 text-indigo-600 font-medium py-2 rounded-lg hover:bg-indigo-200"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm"
           >
             + New Invoice
           </Link>
