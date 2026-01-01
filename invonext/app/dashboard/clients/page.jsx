@@ -1,8 +1,13 @@
 import React from 'react'
+import ClientHeader from './components/clientHeader'
+import ClientsTable from './components/ClientsTable'
 
 const page = () => {
   return (
-    <div>page</div>
+    <section>
+      <ClientHeader/>
+      <ClientsTable/>
+    </section>
   )
 }
 
