@@ -90,7 +90,7 @@ const InvoiceHeader = ({ invoices = [] }) => {
               </button>
 
               {isExportOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-[60] py-1 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-60 py-1 overflow-hidden">
                   <button onClick={() => exportData("excel")} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600">
                     <LuTable className="w-4 h-4 text-green-600" /> Export to Excel
                   </button>
