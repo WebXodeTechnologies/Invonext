@@ -4,14 +4,13 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { LuUserRoundPlus } from "react-icons/lu";
+import { LuUserRoundPlus, LuSearch, LuDownload } from "react-icons/lu";
 
-// Receive clients as prop for export
-const ClientHeader = ({ clients }) => {
+const ClientHeader = ({ clients = [] }) => {
   const router = useRouter();
 
-  // Export Excel
   const exportToExcel = () => {
+    if (!clients.length) return alert("No data to export");
     const ws = XLSX.utils.json_to_sheet(
       clients.map((c, index) => ({
         SNo: index + 1,
@@ -19,62 +18,68 @@ const ClientHeader = ({ clients }) => {
         Email: c.email,
         Phone: c.phone,
         GSTNumber: c.gstNumber,
-        City: c.address.city,
-        State: c.address.state,
+        City: c.address?.city || "N/A",
+        State: c.address?.state || "N/A",
         Status: c.status,
       }))
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Clients");
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    saveAs(
-      new Blob([buf], { type: "application/octet-stream" }),
-      "clients.xlsx"
-    );
+    saveAs(new Blob([buf], { type: "application/octet-stream" }), "clients.xlsx");
   };
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white p-4 md:p-6 rounded-lg border border-gray-200 mb-6">
-      {/* Left Section */}
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Clients</h1>
-        <p className="text-sm text-gray-500">
-          Manage your customers and billing information
-        </p>
-      </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-2 w-[60%] md:w-[95%] lg:w-full mb-5">
+      
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        
+        {/* Row 1: Title Block */}
+        <div className="text-left">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+            Clients
+          </h1>
+          <p className="text-xs md:text-sm text-gray-500 mt-0.5">
+            Manage your customer database and records
+          </p>
+        </div>
 
-      {/* Right Section */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search clients..."
-          className="w-full sm:w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+        
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 w-full lg:w-auto">
+          
+          {/* Row 2: Search Box */}
+          <div className="relative w-full lg:w-72 xl:w-80">
+            <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search clients..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+            />
+          </div>
 
-        {/* Export */}
-        <select
-          onChange={(e) => {
-            if (e.target.value === "csv") return; // handled by CSVLink below
-            if (e.target.value === "excel") exportToExcel();
-          }}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Export</option>
-          <option value="csv">Export as CSV</option>
-          <option value="excel">Export as Excel</option>
-        </select>
+          {/* Row 3 (Mobile): Export Select */}
+          <div className="relative w-full lg:w-36">
+            <select
+              onChange={(e) => e.target.value === "excel" && exportToExcel()}
+              className="w-full appearance-none pl-3 pr-8 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 outline-none cursor-pointer hover:border-gray-400 transition-all"
+            >
+              <option value="">Export Options</option>
+              <option value="excel">Excel (.xlsx)</option>
+              <option value="csv">CSV (.csv)</option>
+            </select>
+            <LuDownload className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
 
-        {/* CSV Export */}
+          {/* Row 4 (Mobile): Add Client Button */}
+          <button
+            onClick={() => router.push("/dashboard/clients/newclient")}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm"
+          >
+            <LuUserRoundPlus className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Add Client</span>
+          </button>
 
-        {/* Add Client */}
-        <button
-          onClick={() => router.push("/dashboard/clients/newclient")}
-          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
-        >
-          <LuUserRoundPlus className="h-5 w-5" />
-          Add Client
-        </button>
+        </div>
       </div>
     </div>
   );

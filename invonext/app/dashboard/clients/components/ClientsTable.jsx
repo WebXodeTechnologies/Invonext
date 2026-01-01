@@ -45,81 +45,87 @@ const statusColors = {
 
 export default function ClientsTable() {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-700">
-            <th className="px-6 py-3 text-left">S.No</th>
-            <th className="px-6 py-3 text-left">Client</th>
-            <th className="px-6 py-3 text-left">Email</th>
-            <th className="px-6 py-3 text-left">Phone</th>
-            <th className="px-6 py-3 text-left">GST Number</th>
-            <th className="px-6 py-3 text-left">City / State</th>
-            <th className="px-6 py-3 text-center">Status</th>
-            <th className="px-6 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 text-gray-700 text-sm">
-          {clients.map((client, index) => (
-            <tr
-              key={client.id}
-              className={`${
-                index % 2 === 0 ? "bg-white" : "bg-gray-50"
-              } hover:bg-gray-100 transition-colors`}
-            >
-              <td className="px-6 py-4">{index + 1}</td>
-
-              {/* Client Name + Avatar */}
-              <td className="px-6 py-4 flex items-center gap-3">
-                <Image
-                  src={client.avatar}
-                  alt={client.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium text-gray-900">
-                    {client.name}
-                  </span>
-                  <span className="text-gray-500 text-sm">{client.email}</span>
-                </div>
-              </td>
-
-              <td className="px-6 py-4">{client.email}</td>
-              <td className="px-6 py-4">{client.phone}</td>
-              <td className="px-6 py-4">{client.gstNumber}</td>
-              <td className="px-6 py-4">{`${client.address.city}, ${client.address.state}`}</td>
-
-              {/* Status Badge */}
-              <td className="px-6 py-4 text-center">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    statusColors[client.status]
-                  }`}
-                >
-                  {client.status}
-                </span>
-              </td>
-
-              {/* Actions */}
-              <td className="px-6 py-4 text-right">
-                <div className="flex justify-end gap-2">
-                  <button className="p-2 hover:bg-gray-200 rounded-md transition-colors">
-                    <Eye className="h-4 w-4" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-200 rounded-md transition-colors">
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button className="p-2 hover:bg-red-100 rounded-md transition-colors">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </button>
-                </div>
-              </td>
+    <div className="w-full mx-auto">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200 table-fixed lg:table-auto">
+          <thead className="bg-gray-50">
+            <tr className="text-xs 4xl:text-lg font-semibold uppercase tracking-wider text-gray-500">
+              <th className="px-4 py-4 4xl:px-8 4xl:py-6 text-left w-16 4xl:w-24">S.No</th>
+              <th className="px-4 py-4 4xl:px-8 4xl:py-6 text-left">Client</th>
+              <th className="hidden md:table-cell px-4 py-4 4xl:px-8 4xl:py-6 text-left">Phone</th>
+              <th className="hidden lg:table-cell px-4 py-4 4xl:px-8 4xl:py-6 text-left">GST Number</th>
+              <th className="hidden xl:table-cell px-4 py-4 4xl:px-8 4xl:py-6 text-left">Location</th>
+              <th className="px-4 py-4 4xl:px-8 4xl:py-6 text-center">Status</th>
+              <th className="px-4 py-4 4xl:px-8 4xl:py-6 text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          
+          <tbody className="divide-y divide-gray-100 bg-white text-sm 4xl:text-xl text-gray-700">
+            {clients.map((client, index) => (
+              <tr key={client.id} className="hover:bg-gray-50/50 transition-colors group">
+                <td className="px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-gray-500 font-medium">
+                  {index + 1}
+                </td>
+
+                <td className="px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap">
+                  <div className="flex items-center gap-3 4xl:gap-6">
+                    <div className="relative h-10 w-10 4xl:h-16 4xl:w-16 shrink-0">
+                      <Image
+                        src={client.avatar}
+                        alt={client.name}
+                        fill
+                        className="rounded-full object-cover shadow-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-gray-900 truncate max-w-[140px] lg:max-w-full">
+                        {client.name}
+                      </span>
+                      <span className="text-xs 4xl:text-lg text-gray-500 truncate">
+                        {client.email}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td className="hidden md:table-cell px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap">
+                  {client.phone}
+                </td>
+
+                <td className="hidden lg:table-cell px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap">
+                  <span className="font-mono text-xs 4xl:text-lg bg-gray-100 px-2 py-1 rounded">
+                    {client.gstNumber}
+                  </span>
+                </td>
+
+                <td className="hidden xl:table-cell px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-gray-600">
+                  {client.address.city}, {client.address.state}
+                </td>
+
+                <td className="px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-center">
+                  <span className={`inline-flex px-3 py-1 4xl:px-6 4xl:py-2 rounded-full text-xs 4xl:text-lg font-bold shadow-sm ${statusColors[client.status]}`}>
+                    {client.status}
+                  </span>
+                </td>
+
+                <td className="px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-right">
+                  <div className="flex justify-end items-center gap-2 4xl:gap-4">
+                    <button className="p-2 4xl:p-4 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all">
+                      <Eye className="h-4 w-4 4xl:h-6 4xl:w-6" />
+                    </button>
+                    <button className="p-2 4xl:p-4 hover:bg-indigo-50 rounded-full text-indigo-600 transition-all">
+                      <Pencil className="h-4 w-4 4xl:h-6 4xl:w-6" />
+                    </button>
+                    <button className="p-2 4xl:p-4 hover:bg-red-50 rounded-full text-red-600 transition-all">
+                      <Trash2 className="h-4 w-4 4xl:h-6 4xl:w-6" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

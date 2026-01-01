@@ -23,7 +23,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler,
+  Filler
 );
 
 export default function ClientOverview() {
@@ -32,23 +32,29 @@ export default function ClientOverview() {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
     datasets: [
       {
-        label: "Revenue ₹",
+        label: "Revenue",
         data: [12000, 15000, 12500, 18000, 20000, 22000],
         borderColor: "#4f46e5",
         backgroundColor: "rgba(79, 70, 229, 0.1)",
         tension: 0.4,
         fill: true,
+        pointRadius: 4,
       },
     ],
   };
 
   const revenueOptions = {
     responsive: true,
-    plugins: { legend: { display: false } },
+    maintainAspectRatio: false, // Allows custom height via parent div
+    plugins: { 
+      legend: { display: false } 
+    },
     scales: {
       y: {
-        ticks: {
-          callback: (value) => `₹${value.toLocaleString("en-IN")}`,
+        beginAtZero: true,
+        ticks: { 
+          // Shortens numbers (e.g., 12000 to ₹12k) for better mobile fit
+          callback: (value) => `₹${value / 1000}k`,
         },
       },
     },
@@ -63,64 +69,68 @@ export default function ClientOverview() {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      {/* Left Column – Revenue Graph */}
-      <div className="bg-white rounded-xl shadow-lg p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Revenue Chart
-        </h3>
-        <Line data={revenueData} options={revenueOptions} />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 md:p-0">
+      
+      {/* Chart Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Revenue Overview</h3>
+        <div className="h-[250px] md:h-[300px] w-full">
+          <Line data={revenueData} options={revenueOptions} />
+        </div>
       </div>
 
-      {/* Right Column – Recent Clients Table */}
-      <div className="bg-white rounded-xl shadow-lg p-4 flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Recent Clients
-          </h3>
-          <button className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+      {/* Table Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 flex flex-col">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h3 className="text-lg font-semibold text-gray-800">Recent Clients</h3>
+          <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition font-medium">
             <UserPlus className="w-4 h-4" />
             Add Client
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-gray-700">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="py-2 px-3">Name</th>
-                <th className="py-2 px-3">Email</th>
-                <th className="py-2 px-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentClients.map((client, idx) => (
-                <tr
-                  key={idx}
-                  className="hover:bg-gray-50 transition cursor-pointer border-b border-gray-100"
-                >
-                  <td className="py-2 px-3 flex items-center gap-2">
-                    <Users className="w-5 h-5 text-gray-500" />
-                    {client.name}
-                  </td>
-                  <td className="py-2 px-3">{client.email}</td>
-                  <td className="py-2 px-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        client.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {client.status}
-                    </span>
-                  </td>
+        {/* Responsive Table Wrapper */}
+        <div className="overflow-x-auto -mx-4 md:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="pb-3 px-4">Client</th>
+                  <th className="pb-3 px-4 hidden sm:table-cell">Email</th>
+                  <th className="pb-3 px-4">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {recentClients.map((client, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                          <Users className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <span className="font-medium text-gray-900 text-sm">{client.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-sm text-gray-600 hidden sm:table-cell">
+                      {client.email}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        client.status === "Active" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-red-100 text-red-700"
+                      }`}>
+                        {client.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+      
     </div>
   );
 }
