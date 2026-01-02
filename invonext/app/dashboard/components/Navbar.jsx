@@ -19,11 +19,11 @@ import { FaFileInvoiceDollar } from "react-icons/fa6";
 
 const ROUTES = {
   dashboard: "/dashboard",
-  invoices: "/dashboard/invoices",
-  newInvoice: "/dashboard/invoices/new",
+  invoices: "/dashboard/Invoices",
+  newInvoice: "/dashboard/Invoices/new",
   clients: "/dashboard/clients",
   profile: "/dashboard/profile",
-  settings: "/dashboard/settings",
+  
 };
 
 const notifications = [
@@ -176,13 +176,7 @@ export default function Navbar() {
                 <User size={18} /> My Profile
               </Link>
 
-              <Link
-                href={ROUTES.settings}
-                onClick={closeMenus}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
-              >
-                <Settings size={18} /> Settings
-              </Link>
+              
 
               <hr className="my-2 border-gray-200" />
 
@@ -265,13 +259,7 @@ export default function Navbar() {
           >
             My Profile
           </Link>
-          <Link
-            href={ROUTES.settings}
-            onClick={() => setMobileMenu(false)}
-            className="block px-3 py-2 rounded-lg hover:bg-gray-100"
-          >
-            Settings
-          </Link>
+          
           <button
             onClick={handleLogout}
             disabled={loading}

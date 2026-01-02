@@ -21,7 +21,7 @@ const NAV_ITEMS = [
   { label: "Clients", href: "/dashboard/clients", icon: Users },
   { label: "Invoices", href: "/dashboard/Invoices", icon: FileText },
   { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  
 ];
 
 export default function Layout({ children }) {
