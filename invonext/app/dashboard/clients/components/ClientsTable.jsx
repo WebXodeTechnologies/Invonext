@@ -1,9 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Added for navigation
 
-const clients = [
+const initialClients = [
   {
     id: "1",
     avatar: "https://i.pravatar.cc/40?img=1",
@@ -36,7 +37,6 @@ const clients = [
   },
 ];
 
-// Map status to colors
 const statusColors = {
   Overdue: "bg-red-100 text-red-800",
   Pending: "bg-yellow-100 text-yellow-800",
@@ -44,6 +44,31 @@ const statusColors = {
 };
 
 export default function ClientsTable() {
+  const router = useRouter();
+  const [clients, setClients] = useState(initialClients); // Added state to handle deletion locally for now
+
+  // --- Navigation Logic ---
+
+  const handleView = (id) => {
+    // Navigates to /clients/1
+    router.push(`/clients/${id}`);
+  };
+
+  const handleEdit = (id) => {
+    // Navigates to /clients/edit/1
+    router.push(`/clients/edit/${id}`);
+  };
+
+  const handleDelete = async (id, name) => {
+    const confirmDelete = confirm(`Are you sure you want to delete ${name}?`);
+    if (confirmDelete) {
+      // For now, filtering the local state. 
+      // Later, you will call: await fetch(`/api/clients/${id}`, { method: 'DELETE' })
+      setClients(clients.filter((client) => client.id !== id));
+      console.log(`Client ${id} deleted`);
+    }
+  };
+
   return (
     <div className="w-full mx-auto">
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -88,7 +113,7 @@ export default function ClientsTable() {
                   </div>
                 </td>
 
-                <td className="hidden md:table-cell px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap">
+                <td className="hidden md:table-cell px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-gray-500">
                   {client.phone}
                 </td>
 
@@ -110,13 +135,22 @@ export default function ClientsTable() {
 
                 <td className="px-4 py-4 4xl:px-8 4xl:py-8 whitespace-nowrap text-right">
                   <div className="flex justify-end items-center gap-2 4xl:gap-4">
-                    <button className="p-2 4xl:p-4 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all">
+                    <button 
+                      onClick={() => handleView(client.id)}
+                      className="p-2 4xl:p-4 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
+                    >
                       <Eye className="h-4 w-4 4xl:h-6 4xl:w-6" />
                     </button>
-                    <button className="p-2 4xl:p-4 hover:bg-indigo-50 rounded-full text-indigo-600 transition-all">
+                    <button 
+                      onClick={() => handleEdit(client.id)}
+                      className="p-2 4xl:p-4 hover:bg-indigo-50 rounded-full text-indigo-600 transition-all"
+                    >
                       <Pencil className="h-4 w-4 4xl:h-6 4xl:w-6" />
                     </button>
-                    <button className="p-2 4xl:p-4 hover:bg-red-50 rounded-full text-red-600 transition-all">
+                    <button 
+                      onClick={() => handleDelete(client.id, client.name)}
+                      className="p-2 4xl:p-4 hover:bg-red-50 rounded-full text-red-600 transition-all"
+                    >
                       <Trash2 className="h-4 w-4 4xl:h-6 4xl:w-6" />
                     </button>
                   </div>
