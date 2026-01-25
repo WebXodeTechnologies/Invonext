@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FileText,
   CheckCircle,
@@ -12,23 +12,43 @@ import {
 } from "lucide-react";
 
 const StatsCards = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const json = await res.json();
+        if (json.success) setStats(json.data);
+      } catch (err) {
+        console.error("🔴 Stats Fetch Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) return <div className="p-6 space-y-6 animate-pulse bg-gray-50 rounded-xl h-64" />;
+
   const statsGroups = [
     {
       id: "invoices",
       data: [
-        { title: "Total Invoices", value: 120, icon: FileText, color: "bg-blue-100 text-blue-700" },
-        { title: "Paid", value: 80, icon: CheckCircle, color: "bg-green-100 text-green-700" },
-        { title: "Unpaid", value: 30, icon: XCircle, color: "bg-red-100 text-red-700" },
-        { title: "Revenue", value: 12500, icon: DollarSign, color: "bg-yellow-100 text-yellow-700", isCurrency: true },
+        { title: "Total Invoices", value: stats?.totalInvoices || 0, icon: FileText, color: "bg-blue-100 text-blue-700" },
+        { title: "Paid Revenue", value: stats?.totalRevenue || 0, icon: CheckCircle, color: "bg-green-100 text-green-700", isCurrency: true },
+        { title: "Pending Amt", value: stats?.pendingAmount || 0, icon: XCircle, color: "bg-red-100 text-red-700", isCurrency: true },
+        { title: "Net Worth", value: (stats?.totalRevenue || 0) + (stats?.pendingAmount || 0), icon: DollarSign, color: "bg-yellow-100 text-yellow-700", isCurrency: true },
       ],
     },
     {
       id: "clients",
       data: [
-        { title: "Total Clients", value: 200, icon: Users, color: "bg-purple-100 text-purple-700" },
-        { title: "New Clients", value: 15, icon: UserPlus, color: "bg-pink-100 text-pink-700" },
-        { title: "Active Clients", value: 180, icon: UserPlus, color: "bg-green-100 text-green-700" },
-        { title: "Inactive Clients", value: 20, icon: UserMinus, color: "bg-red-100 text-red-700" },
+        { title: "Total Clients", value: stats?.totalClients || 0, icon: Users, color: "bg-purple-100 text-purple-700" },
+        { title: "Active", value: stats?.totalClients || 0, icon: UserPlus, color: "bg-green-100 text-green-700" }, 
+        { title: "New", value: 0, icon: UserPlus, color: "bg-pink-100 text-pink-700" },
+        { title: "Inactive", value: 0, icon: UserMinus, color: "bg-red-100 text-red-700" },
       ],
     },
   ];
