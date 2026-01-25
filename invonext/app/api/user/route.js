@@ -2,13 +2,13 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/db";
-import User from "@/models/user";
+import User from "@/models/User";
 
 export async function GET(req) {
   try {
     await connectDB();
 
-    const clerkUser = await currentUser(); // ✅ reads user from session automatically
+    const clerkUser = await currentUser(); 
     if (!clerkUser) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }

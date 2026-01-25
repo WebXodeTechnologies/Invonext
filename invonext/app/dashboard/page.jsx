@@ -1,3 +1,4 @@
+
 import React from "react";
 import Greet from "../components/main/dashboard/Greet";
 import StatsCards from "../components/main/dashboard/StatsCards";
@@ -6,11 +7,10 @@ import TaskOverview from "../components/main/dashboard/TaskOverview";
 import ClientPaymentTable from "../components/main/dashboard/ClientPaymentTable";
 
 export default function DashboardPage() {
-  const userName = "Akash";
 
   return (
-    <div className="flex-1 flex flex-col">
-      <Greet userName={userName} />
+    <div className="flex-1 flex flex-col gap-6">
+      <Greet />
       <StatsCards />
       <ClientOverview />
       <ClientPaymentTable />
