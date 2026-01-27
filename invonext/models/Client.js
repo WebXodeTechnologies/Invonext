@@ -7,6 +7,8 @@ const ClientSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
 
     name: {
       type: String,
@@ -25,6 +27,7 @@ const ClientSchema = new mongoose.Schema(
       type: String,
       match: /^[6-9]\d{9}$/,
     },
+    website: { type: String, trim: true },
 
     gstNumber: {
       type: String,
@@ -32,24 +35,29 @@ const ClientSchema = new mongoose.Schema(
       index: true,
     },
 
+    companyName: { type: String, trim: true },
+
     address: {
-      line1: { type: String, required: true },
-      line2: { type: String },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
+      fullAddress: { type: String },
+      city: { type: String },
+      state: { type: String },
       pincode: {
         type: String,
-        required: true,
-        match: /^\d{6}$/,
       },
       country: { type: String, default: "India" },
     },
+    profileImage: { type: String },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed", "Overdue", "Paid"],
+      default: "Pending",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Optional but smart
 ClientSchema.index({ userId: 1, email: 1 });
+ClientSchema.index({ userId: 1, email: 1 });
 
-export default mongoose.models.Client ||
-  mongoose.model("Client", ClientSchema);
+export default mongoose.models.Client || mongoose.model("Client", ClientSchema);
