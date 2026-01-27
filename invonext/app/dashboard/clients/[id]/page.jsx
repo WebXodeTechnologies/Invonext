@@ -6,6 +6,7 @@ import { LuUserPlus, LuBuilding, LuMapPin } from "react-icons/lu";
 import { RiUploadCloud2Line } from "react-icons/ri";
 import { IoMdArrowRoundBack } from "react-icons/io";
 
+
 const ClientCreationPage = () => {
   const router = useRouter();
   const COUNTRY_CODE = "IN"; // Defaulting to India
@@ -30,10 +31,11 @@ const ClientCreationPage = () => {
 
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load States on Mount
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setStates(State.getStatesOfCountry(COUNTRY_CODE));
   }, []);
 
@@ -64,12 +66,62 @@ const ClientCreationPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Submitting Client Data:", formData);
-    // TODO: Connect to your Express backend
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
+  try {
+    const data = new FormData();
+
+    // 1. Handle the profile image (Cloudinary trigger)
+    // Make sure the key is 'file' to match the backend data.get("file")
+    if (formData.profile) {
+      data.append("file", formData.profile);
+    }
+
+    // 2. Map fields to match your Mongoose Schema
+    data.append("firstName", formData.firstName);
+    data.append("lastName", formData.lastName);
+    data.append("name", `${formData.firstName} ${formData.lastName}`);
+    data.append("email", formData.email);
+    data.append("phone", formData.contact);
+    data.append("website", formData.website);
+    data.append("gstNumber", formData.gstin);
+    data.append("companyName", formData.companyName);
+    data.append("notes", formData.notes);
+
+    // 3. Stringify the address object (Crucial for FormData)
+    const addressData = {
+      fullAddress: formData.address, // Matches your Schema's 'fullAddress'
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.postalCode,
+      country: formData.country || "India",
+    };
+    data.append("address", JSON.stringify(addressData));
+
+    // 4. API Call
+    const res = await fetch("/api/clients", {
+      method: "POST",
+      body: data, // No headers needed, browser handles multipart/form-data
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      router.push("/dashboard/clients");
+      router.refresh();
+    } else {
+      // result.message comes from your API's catch block
+      alert(result.message || "Failed to create client");
+    }
+  } catch (error) {
+    console.error("❌ Submission Error:", error);
+    alert("An error occurred. Check the console for details.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -226,9 +278,10 @@ const ClientCreationPage = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold  text-sm hover:bg-indigo-800 transition shadow-lg shadow-gray-200"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold text-sm hover:bg-indigo-800 transition shadow-lg disabled:opacity-50 flex items-center gap-2"
             >
-              Save Client
+              {isSubmitting ? "Saving..." : "Save Client"}
             </button>
           </div>
         </form>
