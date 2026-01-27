@@ -64,7 +64,7 @@ const Greet = () => {
       </div>
 
       {/* Right section: Motivational Image */}
-      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
+      <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
         <Image
           src="/assets/dashboard/love.png"
           alt="Motivational Emoji"
