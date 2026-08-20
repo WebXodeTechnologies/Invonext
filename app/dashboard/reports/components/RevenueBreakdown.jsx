@@ -1,26 +1,48 @@
 "use client";
+
 import React from "react";
+import { Package, PieChart } from "lucide-react";
 
 export default function RevenueBreakdown({ data = [] }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-      <div className="p-5 border-b border-gray-100">
-        <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Service Revenue Breakdown</h3>
+    <div className="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5 h-full">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <PieChart size={17} className="text-indigo-600" /> Revenue by Line
+            Item
+          </h2>
+          <p className="text-xs text-slate-500 font-medium">
+            Top services and products by gross volume.
+          </p>
+        </div>
       </div>
-      <div className="p-6 space-y-6">
-        {data.map((service, i) => (
-          <div key={i} className="space-y-2">
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-sm font-bold text-gray-800">{service.name}</p>
-                <p className="text-[10px] text-gray-400 uppercase font-bold">{service.count} Projects</p>
-              </div>
-              <p className="text-sm font-black text-gray-900">{service.total}</p>
+
+      <div className="space-y-4">
+        {data.map((item, index) => (
+          <div key={index} className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-slate-800 flex items-center gap-2 truncate max-w-[200px]">
+                <Package size={13} className="text-slate-400 shrink-0" />
+                <span className="truncate">{item.name}</span>
+                <span className="text-[10px] text-slate-400 font-normal">
+                  ({item.count} qty)
+                </span>
+              </span>
+              <span className="text-slate-900 font-extrabold shrink-0">
+                ₹{Number(item.total).toLocaleString("en-IN")}{" "}
+                <span className="text-[10px] text-slate-400 font-medium">
+                  ({item.percentage}%)
+                </span>
+              </span>
             </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-indigo-600 transition-all duration-500" 
-                style={{ width: `${service.percentage}%` }}
+
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-linear-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(100, Math.max(5, item.percentage))}%`,
+                }}
               />
             </div>
           </div>
