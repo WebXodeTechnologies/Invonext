@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/db";
 import Invoice from "@/models/Invoice";
 import Client from "@/models/Client";
+import { createNotification } from "@/lib/createNotification";
 
 export async function GET() {
   try {
@@ -79,7 +80,7 @@ export async function POST(req) {
     const subTotal =
       Math.round(items.reduce((sum, item) => sum + item.amount, 0) * 100) / 100;
 
-    // 3. Robust Tax Handling (Handles NONE, CGST_SGST, IGST)
+    // 3. Tax Handling
     const rawTaxType = body.tax?.type || body.taxType || "NONE";
     const taxType =
       rawTaxType === "NO_GST"
@@ -124,6 +125,15 @@ export async function POST(req) {
     const populated = await Invoice.findById(invoice._id)
       .populate("clientId", "name companyName email phone gstNumber address")
       .lean();
+
+    // 5. Trigger notification
+    await createNotification({
+      userId,
+      title: "Invoice Generated",
+      message: `Tax Invoice #${invoice.invoiceNumber} for ₹${Number(invoice.totalAmount).toLocaleString("en-IN")} was created.`,
+      type: "invoice",
+      link: `/dashboard/Invoices/${invoice._id}?mode=view`,
+    });
 
     return NextResponse.json(
       { success: true, data: populated },

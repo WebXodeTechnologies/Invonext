@@ -1,87 +1,465 @@
 "use client";
-import React, { useState } from "react";
-import { LuUser, LuMail, LuPhone, LuShieldCheck, LuCamera, LuSave } from "react-icons/lu";
 
-const ProfilePage = () => {
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Mail,
+  Phone,
+  Building2,
+  ShieldCheck,
+  Camera,
+  Save,
+  Loader2,
+  Receipt,
+  Landmark,
+  MapPin,
+  Sparkles,
+} from "lucide-react";
+import toast from "react-hot-toast";
+
+export default function ProfilePage() {
+  const [activeTab, setActiveTab] = useState("personal");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
   const [profile, setProfile] = useState({
-    name: "Akash S M",
-    role: "MERN Stack Developer",
-    email: "akash@example.com",
-    phone: "+91 98765 43210",
-    avatar: null
+    name: "",
+    role: "Software Developer & Founder",
+    email: "",
+    phone: "",
+    logoUrl: "",
+
+    businessName: "",
+    tradeName: "",
+    gstNumber: "",
+    panNumber: "",
+    msmeNumber: "",
+    currency: "INR",
+
+    bankName: "",
+    accountNumber: "",
+    ifscCode: "",
+    upiId: "",
+
+    street: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
 
-  const handleUpload = (e) => {
-    if (e.target.files[0]) {
-      setProfile({ ...profile, avatar: URL.createObjectURL(e.target.files[0]) });
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/profile");
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          setProfile({
+            name: d.ownerName || d.name || "",
+            role: d.role || "Software Developer & Founder",
+            email: d.email || "",
+            phone: d.phone || "",
+            logoUrl: d.logoUrl || "",
+
+            businessName: d.businessName || "",
+            tradeName: d.tradeName || "",
+            gstNumber: d.gstNumber || "",
+            panNumber: d.panNumber || "",
+            msmeNumber: d.msmeNumber || "",
+            currency: d.currency || "INR",
+
+            bankName: d.bankDetails?.bankName || "",
+            accountNumber: d.bankDetails?.accountNumber || "",
+            ifscCode: d.bankDetails?.ifscCode || "",
+            upiId: d.bankDetails?.upiId || "",
+
+            street: d.address?.street || "",
+            city: d.address?.city || "",
+            state: d.address?.state || "",
+            pincode: d.address?.pincode || "",
+          });
+
+          if (d.logoUrl) {
+            setAvatarPreview(d.logoUrl);
+          }
+        }
+      } catch (err) {
+        console.error("Profile load error:", err);
+        toast.error("Failed to load profile record");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Image file size should be less than 2MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result;
+        setAvatarPreview(base64Data);
+        setProfile((prev) => ({ ...prev, logoUrl: base64Data }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  return (
-    <div className="p-6 md:p-10 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-center gap-8 mb-10">
-        <div className="relative group">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-indigo-50 shadow-xl bg-gray-100">
-            {profile.avatar ? (
-              <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <div className="flex items-center justify-center h-full text-indigo-300">
-                <LuUser size={60} />
-              </div>
-            )}
-          </div>
-          <label className="absolute bottom-1 right-1 bg-indigo-600 p-2 rounded-full text-white cursor-pointer hover:bg-indigo-700 transition-all shadow-lg">
-            <LuCamera size={18} />
-            <input type="file" className="hidden" onChange={handleUpload} accept="image/*" />
-          </label>
-        </div>
+  const handleInputChange = (field, val) => {
+    setProfile((prev) => ({ ...prev, [field]: val }));
+  };
 
-        <div className="text-center md:text-left space-y-2">
-          <h1 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">{profile.name}</h1>
-          <p className="text-indigo-600 font-bold uppercase text-xs tracking-[0.2em]">{profile.role}</p>
-          <div className="flex items-center justify-center md:justify-start gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full w-fit">
-            <LuShieldCheck size={14} />
-            <span className="text-[10px] font-black uppercase">Verified Developer</span>
+  const handleSave = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    if (!profile.name || !profile.email) {
+      toast.error("Name and Email are required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        ownerName: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        logoUrl: profile.logoUrl || avatarPreview || "",
+        businessName: profile.businessName || profile.name,
+        tradeName: profile.tradeName,
+        gstNumber: profile.gstNumber,
+        panNumber: profile.panNumber,
+        msmeNumber: profile.msmeNumber,
+        currency: profile.currency,
+        bankDetails: {
+          bankName: profile.bankName,
+          accountNumber: profile.accountNumber,
+          ifscCode: profile.ifscCode,
+          upiId: profile.upiId,
+        },
+        address: {
+          street: profile.street,
+          city: profile.city,
+          state: profile.state,
+          pincode: profile.pincode,
+        },
+      };
+
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        toast.success("Profile changes saved to database! 🎉");
+      } else {
+        toast.error(json.message || "Failed to commit profile updates");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network communication error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-96 flex flex-col items-center justify-center bg-white/95 border border-slate-200/80 rounded-3xl shadow-xs space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <p className="text-xs font-bold text-slate-500">
+          Loading user profile...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 pb-16 animate-in fade-in duration-300">
+      {/* Top Banner & Avatar Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-white/95 backdrop-blur-xl p-7 sm:p-9 border border-slate-200/80 shadow-xs">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-gradient-to-br from-indigo-100/60 to-purple-50/40 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="relative group shrink-0">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl overflow-hidden border-4 border-white shadow-md bg-slate-100 flex items-center justify-center">
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-600 font-black text-3xl uppercase">
+                  {profile.name ? profile.name.charAt(0) : "U"}
+                </div>
+              )}
+            </div>
+            <label className="absolute -bottom-2 -right-2 bg-indigo-600 hover:bg-indigo-700 active:scale-90 p-2.5 rounded-2xl text-white cursor-pointer transition shadow-md shadow-indigo-200">
+              <Camera size={16} />
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleAvatarChange}
+                accept="image/*"
+              />
+            </label>
           </div>
+
+          <div className="text-center sm:text-left space-y-2 flex-1">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                {profile.name || "User Account"}
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100/80">
+                <ShieldCheck size={13} /> Verified Account
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm font-semibold text-indigo-600 uppercase tracking-wider">
+              {profile.role}
+            </p>
+            <p className="text-xs text-slate-500 font-medium max-w-md">
+              Manage your personal credentials, GST compliance details, and
+              settlement channels.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md shadow-indigo-200 transition cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {saving ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            <span>{saving ? "Saving..." : "Save Profile"}</span>
+          </button>
         </div>
       </div>
 
-      {/* Profile Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
-        <ProfileInput label="Full Name" icon={<LuUser />} value={profile.name} />
-        <ProfileInput label="Email Address" icon={<LuMail />} value={profile.email} />
-        <ProfileInput label="Phone Number" icon={<LuPhone />} value={profile.phone} />
-        
-        <div className="flex flex-col space-y-2">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Account Security</label>
-          <button className="text-left p-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-all">
-            Change Password
-          </button>
-        </div>
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60 w-fit text-xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab("personal")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            activeTab === "personal"
+              ? "bg-white text-indigo-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <User size={14} /> Personal Identity
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("business")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            activeTab === "business"
+              ? "bg-white text-indigo-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Receipt size={14} /> Business & GST
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("banking")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+            activeTab === "banking"
+              ? "bg-white text-indigo-600 shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Landmark size={14} /> Banking Coordinates
+        </button>
+      </div>
 
-        <div className="md:col-span-2 pt-6 flex justify-center items-center">
-          <button className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-900 transition-all shadow-xl shadow-gray-200">
-            <LuSave size={18} /> Update Profile
-          </button>
-        </div>
+      {/* Form Container */}
+      <form onSubmit={handleSave} className="space-y-6">
+        {/* Tab 1: Personal Identity */}
+        {activeTab === "personal" && (
+          <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 animate-in fade-in">
+            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <User size={17} className="text-indigo-600" /> Account Owner
+              Details
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ProfileInput
+                label="Full Legal Name *"
+                icon={<User size={15} />}
+                value={profile.name}
+                onChange={(val) => handleInputChange("name", val)}
+                placeholder="e.g. Akash S M"
+              />
+              <ProfileInput
+                label="Professional Designation"
+                icon={<Sparkles size={15} />}
+                value={profile.role}
+                onChange={(val) => handleInputChange("role", val)}
+                placeholder="e.g. MERN Stack Developer"
+              />
+              <ProfileInput
+                label="Email Address *"
+                icon={<Mail size={15} />}
+                value={profile.email}
+                onChange={(val) => handleInputChange("email", val)}
+                placeholder="e.g. akash@example.com"
+                type="email"
+              />
+              <ProfileInput
+                label="Phone Number"
+                icon={<Phone size={15} />}
+                value={profile.phone}
+                onChange={(val) => handleInputChange("phone", val)}
+                placeholder="e.g. +91 98765 43210"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Business & GST */}
+        {activeTab === "business" && (
+          <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 animate-in fade-in">
+            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Building2 size={17} className="text-indigo-600" /> Enterprise &
+              Compliance Identifiers
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ProfileInput
+                label="Legal Business Name"
+                icon={<Building2 size={15} />}
+                value={profile.businessName}
+                onChange={(val) => handleInputChange("businessName", val)}
+                placeholder="e.g. Webxode Technologies"
+              />
+              <ProfileInput
+                label="Trade / Brand Name"
+                icon={<Building2 size={15} />}
+                value={profile.tradeName}
+                onChange={(val) => handleInputChange("tradeName", val)}
+                placeholder="e.g. Webxode"
+              />
+              <ProfileInput
+                label="GSTIN Identifier"
+                icon={<Receipt size={15} />}
+                value={profile.gstNumber}
+                onChange={(val) =>
+                  handleInputChange("gstNumber", val.toUpperCase())
+                }
+                placeholder="e.g. 33AAAAA0000A1Z5"
+              />
+              <ProfileInput
+                label="Permanent Account # (PAN)"
+                icon={<Receipt size={15} />}
+                value={profile.panNumber}
+                onChange={(val) =>
+                  handleInputChange("panNumber", val.toUpperCase())
+                }
+                placeholder="e.g. ABCDE1234F"
+              />
+              <ProfileInput
+                label="Street Address"
+                icon={<MapPin size={15} />}
+                value={profile.street}
+                onChange={(val) => handleInputChange("street", val)}
+                placeholder="e.g. 402, Ring Road"
+              />
+              <ProfileInput
+                label="City & State"
+                icon={<MapPin size={15} />}
+                value={profile.city}
+                onChange={(val) => handleInputChange("city", val)}
+                placeholder="e.g. Chennai, Tamil Nadu"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Banking Coordinates */}
+        {activeTab === "banking" && (
+          <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 animate-in fade-in">
+            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Landmark size={17} className="text-indigo-600" /> Settlement &
+              UPI Information
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ProfileInput
+                label="Bank Name"
+                icon={<Landmark size={15} />}
+                value={profile.bankName}
+                onChange={(val) => handleInputChange("bankName", val)}
+                placeholder="e.g. HDFC Bank"
+              />
+              <ProfileInput
+                label="Account Number"
+                icon={<Landmark size={15} />}
+                value={profile.accountNumber}
+                onChange={(val) => handleInputChange("accountNumber", val)}
+                placeholder="e.g. 50200012345678"
+              />
+              <ProfileInput
+                label="IFSC Code"
+                icon={<Landmark size={15} />}
+                value={profile.ifscCode}
+                onChange={(val) =>
+                  handleInputChange("ifscCode", val.toUpperCase())
+                }
+                placeholder="e.g. HDFC0000123"
+              />
+              <ProfileInput
+                label="UPI ID / VPA"
+                icon={<Sparkles size={15} />}
+                value={profile.upiId}
+                onChange={(val) => handleInputChange("upiId", val)}
+                placeholder="e.g. akash@okhdfcbank"
+              />
+            </div>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+function ProfileInput({
+  label,
+  icon,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        {label}
+      </label>
+      <div className="relative">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
+          {icon}
+        </span>
+        <input
+          type={type}
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/80 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+        />
       </div>
     </div>
   );
-};
-
-// Clean UI Component
-const ProfileInput = ({ label, icon, value }) => (
-  <div className="space-y-1">
-    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">{icon}</span>
-      <input 
-        defaultValue={value}
-        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-800 outline-none focus:border-indigo-500 focus:bg-white transition-all"
-      />
-    </div>
-  </div>
-);
-
-export default ProfilePage;
+}

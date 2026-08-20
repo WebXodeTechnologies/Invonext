@@ -17,7 +17,12 @@ import {
   FileText,
   Users,
   X,
-  SlidersHorizontal,
+  CheckCheck,
+  Receipt,
+  Kanban,
+  Building2,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 
 const ROUTES = {
@@ -28,28 +33,15 @@ const ROUTES = {
   profile: "/dashboard/profile",
 };
 
-const notifications = [
-  {
-    id: 1,
-    title: "System Ready",
-    text: "Welcome to InvoNxt Invoicing Engine",
-    link: ROUTES.dashboard,
-    time: "Just now",
-  },
-  {
-    id: 2,
-    title: "GST Billing",
-    text: "Create clients & generate tax invoices effortlessly",
-    link: ROUTES.newInvoice,
-    time: "5m ago",
-  },
-];
-
 export default function Navbar() {
   const [openProfile, setOpenProfile] = useState(false);
   const [openNotif, setOpenNotif] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifs, setLoadingNotifs] = useState(false);
 
   const { signOut } = useClerk();
   const { user } = useUser();
@@ -59,7 +51,66 @@ export default function Navbar() {
   const notifRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Close dropdowns when clicking outside
+  // Fetch Notifications from DB
+  const fetchNotifications = async () => {
+    try {
+      setLoadingNotifs(true);
+      const res = await fetch("/api/notifications");
+      const json = await res.json();
+      if (json.success) {
+        setNotifications(json.data || []);
+        setUnreadCount(json.unreadCount || 0);
+      }
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // Poll for fresh notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Mark all notifications as read
+  const handleMarkAllRead = async () => {
+    try {
+      setUnreadCount(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({}),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Mark single notification as read & navigate
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.isRead) {
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notif._id ? { ...n, isRead: true } : n)),
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationId: notif._id }),
+        });
+      }
+      setOpenNotif(false);
+      router.push(notif.link || ROUTES.dashboard);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -73,7 +124,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Global Keyboard Shortcut: CMD/CTRL + K for Quick Search
+  // CMD/CTRL + K Search Shortcut
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -102,6 +153,30 @@ export default function Navbar() {
     router.push("/sign-in");
   };
 
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return "Just now";
+    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  const getNotifIcon = (type) => {
+    switch (type) {
+      case "invoice":
+        return <Receipt size={14} className="text-emerald-600" />;
+      case "task":
+        return <Kanban size={14} className="text-indigo-600" />;
+      case "profile":
+        return <Building2 size={14} className="text-purple-600" />;
+      case "client":
+        return <Users size={14} className="text-blue-600" />;
+      default:
+        return <Sparkles size={14} className="text-amber-600" />;
+    }
+  };
+
   const userAvatar =
     user?.imageUrl ||
     "https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff";
@@ -111,10 +186,10 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 z-30 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-xs">
-      {/* 1. BRAND LOGO (Mobile only when standalone) */}
+      {/* 1. BRAND LOGO (Mobile only) */}
       <div className="flex items-center gap-2.5 md:hidden">
         <Link href={ROUTES.dashboard} className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-linear-to-br from-indigo-600 via-indigo-700 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-200">
             <Zap size={16} className="fill-white/20 text-white" />
           </div>
           <span className="text-lg font-black text-indigo-600 tracking-tight">
@@ -144,7 +219,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Live Status Pill */}
         <span className="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/80 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />{" "}
           Live
@@ -153,7 +227,6 @@ export default function Navbar() {
 
       {/* 3. RIGHT CONTROLS SECTION */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Mobile Search Trigger Button */}
         <button
           onClick={() => setMobileSearchOpen(true)}
           className="md:hidden p-2 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
@@ -162,7 +235,6 @@ export default function Navbar() {
           <Search size={19} />
         </button>
 
-        {/* Create Invoice Primary Action */}
         <Link href={ROUTES.newInvoice}>
           <button className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-200 cursor-pointer">
             <PlusCircle size={16} />
@@ -173,7 +245,6 @@ export default function Navbar() {
 
         <div className="hidden sm:block h-6 w-px bg-slate-200 mx-0.5" />
 
-        {/* Fullscreen Toggle (Desktop Only) */}
         <button
           onClick={toggleFullscreen}
           className="hidden md:flex p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -182,51 +253,94 @@ export default function Navbar() {
           <Maximize2 size={18} />
         </button>
 
-        {/* Notification Bell Dropdown */}
+        {/* Dynamic Notification Bell */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => {
               setOpenNotif(!openNotif);
               setOpenProfile(false);
+              if (!openNotif) fetchNotifications();
             }}
             className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors relative cursor-pointer"
             title="Notifications"
           >
             <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-600 rounded-full ring-2 ring-white" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
+            )}
           </button>
 
           {openNotif && (
-            <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-white border border-slate-200 shadow-xl rounded-2xl p-3 sm:p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 shadow-2xl rounded-3xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2">
-                <h3 className="font-bold text-xs sm:text-sm text-slate-900 flex items-center gap-2">
-                  <Bell size={15} className="text-indigo-600" /> Notifications
-                </h3>
-                <span className="text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                  2 New
-                </span>
-              </div>
-              <div className="space-y-1.5">
-                {notifications.map((n) => (
-                  <Link
-                    key={n.id}
-                    href={n.link}
-                    onClick={() => setOpenNotif(false)}
-                    className="block p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/60 transition"
+                <div className="flex items-center gap-2">
+                  <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
+                    <Bell size={15} className="text-indigo-600" /> Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] text-rose-700 font-extrabold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+                      {unreadCount} Unread
+                    </span>
+                  )}
+                </div>
+
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarkAllRead}
+                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
                   >
-                    <div className="flex justify-between items-center mb-0.5">
-                      <span className="text-xs font-bold text-slate-900">
-                        {n.title}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {n.time}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      {n.text}
+                    <CheckCheck size={13} /> Mark all read
+                  </button>
+                )}
+              </div>
+
+              {/* Notification Stream */}
+              <div className="max-h-80 overflow-y-auto space-y-1.5 pr-1 divide-y divide-slate-50">
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center space-y-1">
+                    <p className="text-xs font-bold text-slate-700">
+                      No activity yet
                     </p>
-                  </Link>
-                ))}
+                    <p className="text-[11px] text-slate-400">
+                      All updates and logs will stream here.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      onClick={() => handleNotificationClick(n)}
+                      className={`pt-2 first:pt-0 p-2.5 rounded-2xl transition cursor-pointer flex items-start gap-3 ${
+                        !n.isRead
+                          ? "bg-indigo-50/40 border border-indigo-100/60"
+                          : "hover:bg-slate-50/80"
+                      }`}
+                    >
+                      <div className="p-2 rounded-xl bg-white border border-slate-200/60 shadow-2xs shrink-0 mt-0.5">
+                        {getNotifIcon(n.type)}
+                      </div>
+
+                      <div className="flex-1 space-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900">
+                            {n.title}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium flex items-center gap-0.5">
+                            <Clock size={10} /> {formatTimeAgo(n.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-2">
+                          {n.message}
+                        </p>
+                      </div>
+
+                      {!n.isRead && (
+                        <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 mt-1.5" />
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -305,7 +419,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 4. MOBILE FULLSCREEN SEARCH MODAL */}
+      {/* 4. MOBILE SEARCH MODAL */}
       {mobileSearchOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-md p-4 flex flex-col animate-in fade-in duration-200">
           <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
@@ -325,32 +439,10 @@ export default function Navbar() {
             </div>
             <button
               onClick={() => setMobileSearchOpen(false)}
-              className="p-2.5 bg-slate-100 text-slate-600 rounded-xl"
+              className="p-2.5 bg-slate-100 text-slate-600 rounded-xl cursor-pointer"
             >
               <X size={20} />
             </button>
-          </div>
-
-          <div className="py-4 space-y-2">
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">
-              Quick Navigation
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                href={ROUTES.newInvoice}
-                onClick={() => setMobileSearchOpen(false)}
-                className="p-3 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs flex items-center gap-2"
-              >
-                <PlusCircle size={16} /> New Invoice
-              </Link>
-              <Link
-                href={ROUTES.clients}
-                onClick={() => setMobileSearchOpen(false)}
-                className="p-3 bg-slate-50 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-2"
-              >
-                <Users size={16} /> Clients
-              </Link>
-            </div>
           </div>
         </div>
       )}
