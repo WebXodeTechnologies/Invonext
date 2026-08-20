@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -8,14 +8,11 @@ import {
   Building2,
   Mail,
   Phone,
-  Globe,
   FileText,
   MapPin,
   Upload,
   Loader2,
   CheckCircle,
-  ShieldCheck,
-  CreditCard,
   Building,
   Sparkles,
   Pencil,
@@ -56,12 +53,12 @@ const PAYMENT_TERMS = [
   "Net 60",
 ];
 
-export default function ClientFormPage() {
+function ClientFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const clientId = searchParams.get("id");
-  const modeParam = searchParams.get("mode") || "new"; // "new" | "edit" | "view"
+  const modeParam = searchParams.get("mode") || "new";
 
   const [mode, setMode] = useState(modeParam);
   const [loading, setLoading] = useState(false);
@@ -70,6 +67,11 @@ export default function ClientFormPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [file, setFile] = useState(null);
   const [sameShipping, setSameShipping] = useState(true);
+
+  // Sync mode whenever URL search param changes
+  useEffect(() => {
+    setMode(searchParams.get("mode") || "new");
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -80,7 +82,6 @@ export default function ClientFormPage() {
     phone: "",
     website: "",
 
-    // Tax Credentials
     gstNumber: "",
     panNumber: "",
     tanNumber: "",
@@ -90,13 +91,11 @@ export default function ClientFormPage() {
     currency: "INR",
     paymentTerms: "Net 30",
 
-    // Banking Details
     bankName: "",
     accountNumber: "",
     ifscCode: "",
     swiftCode: "",
 
-    // Billing Address
     addressLine1: "",
     addressLine2: "",
     city: "",
@@ -104,7 +103,6 @@ export default function ClientFormPage() {
     country: "India",
     pincode: "",
 
-    // Shipping Address
     shippingLine1: "",
     shippingCity: "",
     shippingState: "",
@@ -116,7 +114,6 @@ export default function ClientFormPage() {
 
   const isReadOnly = mode === "view";
 
-  // Fetch client details if editing or viewing
   useEffect(() => {
     if (!clientId) return;
 
@@ -257,7 +254,6 @@ export default function ClientFormPage() {
         payload.append("file", file);
       }
 
-      // Handle Edit (PUT/PATCH) vs Create (POST)
       const url = mode === "edit" ? `/api/clients/${clientId}` : "/api/clients";
       const method = mode === "edit" ? "PATCH" : "POST";
 
@@ -319,7 +315,7 @@ export default function ClientFormPage() {
                   `/dashboard/clients/newclient?id=${clientId}&mode=edit`,
                 );
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200/80 transition active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200/80 transition active:scale-95 cursor-pointer"
             >
               <Pencil size={13} /> Edit Record
             </button>
@@ -365,7 +361,6 @@ export default function ClientFormPage() {
             </div>
           </div>
 
-          {/* Domestic vs International Switcher */}
           {!isReadOnly && (
             <div className="flex items-center bg-slate-100/80 p-1 rounded-2xl border border-slate-200/60 text-xs">
               <button
@@ -417,7 +412,6 @@ export default function ClientFormPage() {
             Identity & Contact
           </h2>
 
-          {/* Logo Upload Box */}
           <div className="flex items-center gap-4 sm:gap-5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60">
             <div className="relative w-16 h-16 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center text-slate-400 shrink-0 shadow-xs">
               {imagePreview ? (
@@ -808,5 +802,22 @@ export default function ClientFormPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function ClientFormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-96 flex flex-col items-center justify-center bg-white border border-slate-200/80 rounded-3xl shadow-xs space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          <p className="text-xs font-bold text-slate-500">
+            Loading client form...
+          </p>
+        </div>
+      }
+    >
+      <ClientFormContent />
+    </Suspense>
   );
 }
