@@ -1,39 +1,50 @@
 "use client";
 
 import React from "react";
-import { LuStickyNote } from "react-icons/lu";
+import { FileEdit } from "lucide-react";
 
-export default function NotesSection({ formData, setFormData }) {
+export default function NotesSection({
+  formData = {},
+  setFormData,
+  isReadOnly = false,
+}) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-      <h2 className="font-bold text-gray-800 flex items-center gap-2 border-b pb-4">
-        <LuStickyNote className="text-indigo-600" /> Notes & Terms
+    <div className="bg-white/95 backdrop-blur-sm p-5 sm:p-7 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+      <h2 className="font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-4 text-sm sm:text-base tracking-tight">
+        <FileEdit className="text-indigo-600" size={18} /> Notes & Settlement
+        Terms
       </h2>
-      
+
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-            Additional Notes
+          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Customer Memo / Additional Notes
           </label>
           <textarea
             rows={3}
-            placeholder="e.g. Project scope details or thank you message..."
-            value={formData?.notes || ""}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+            disabled={isReadOnly}
+            placeholder="e.g. Project milestones achieved or payment transfer reference..."
+            value={formData.notes || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, notes: e.target.value })
+            }
+            className="w-full p-3 bg-slate-50/80 border border-slate-200/90 rounded-2xl text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all resize-none disabled:bg-slate-100"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             Terms & Conditions
           </label>
           <textarea
             rows={2}
-            placeholder="e.g. 50% advance, 50% after completion..."
-            value={formData?.terms || ""}
-            onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
-            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+            disabled={isReadOnly}
+            placeholder="e.g. Invoices not paid within 15 days will incur a 2% monthly interest fee."
+            value={formData.terms || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, terms: e.target.value })
+            }
+            className="w-full p-3 bg-slate-50/80 border border-slate-200/90 rounded-2xl text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all resize-none disabled:bg-slate-100"
           />
         </div>
       </div>
