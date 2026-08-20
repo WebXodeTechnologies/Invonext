@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/db";
 import Invoice from "@/models/Invoice";
+import { createNotification } from "@/lib/createNotification";
 
 export async function GET(req, { params }) {
   try {
@@ -50,7 +51,6 @@ export async function PATCH(req, { params }) {
     const body = await req.json();
     await connectDB();
 
-    // Fetch existing document to support partial updates
     const existing = await Invoice.findOne({ _id: id, userId });
     if (!existing) {
       return NextResponse.json(
@@ -59,7 +59,6 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Recompute line items & totals if items or tax are updated
     if (body.items || body.tax || body.taxType) {
       const rawItems = body.items || existing.items || [];
       const items = rawItems.map((item) => {
@@ -113,6 +112,17 @@ export async function PATCH(req, { params }) {
       { new: true, runValidators: true },
     ).populate("clientId", "name companyName email phone gstNumber address");
 
+    // Trigger notification if status was updated
+    if (body.status && body.status !== existing.status) {
+      await createNotification({
+        userId,
+        title: "Invoice Status Updated",
+        message: `Invoice #${updated.invoiceNumber} status marked as ${body.status.toUpperCase()}.`,
+        type: "invoice",
+        link: `/dashboard/Invoices/${id}?mode=view`,
+      });
+    }
+
     return NextResponse.json({ success: true, data: updated }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -146,6 +156,14 @@ export async function DELETE(req, { params }) {
         { status: 404 },
       );
     }
+
+    await createNotification({
+      userId,
+      title: "Invoice Deleted",
+      message: `Invoice #${deleted.invoiceNumber} was removed from records.`,
+      type: "invoice",
+      link: "/dashboard/Invoices",
+    });
 
     return NextResponse.json(
       { success: true, message: "Invoice deleted successfully" },
