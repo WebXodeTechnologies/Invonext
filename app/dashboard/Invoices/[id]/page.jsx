@@ -21,6 +21,7 @@ import SummaryCard from "../components/SummaryCard";
 import PaymentSection from "../components/PaymentSection";
 import NotesSection from "../components/NotesSection";
 import NoClientModal from "../components/NoClientModal";
+import TemplateSelectorModal from "../components/TemplateSelectorModal";
 
 export default function InvoiceDynamicPage({ params }) {
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function InvoiceDynamicPage({ params }) {
   const [fetching, setFetching] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [showNoClientModal, setShowNoClientModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [clientCount, setClientCount] = useState(null);
 
   const [items, setItems] = useState([
@@ -252,7 +254,7 @@ export default function InvoiceDynamicPage({ params }) {
         <button
           type="button"
           onClick={() => router.push("/dashboard/Invoices")}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition shadow-xs w-fit"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition shadow-xs w-fit cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>Back to Invoices</span>
@@ -261,10 +263,11 @@ export default function InvoiceDynamicPage({ params }) {
         <div className="flex items-center gap-2.5">
           {isReadOnly ? (
             <>
+              {/* Trigger Template Selector Modal */}
               <button
                 type="button"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition shadow-xs"
+                onClick={() => setShowTemplateModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition shadow-xs cursor-pointer"
               >
                 <Printer size={14} /> Print / PDF
               </button>
@@ -274,7 +277,7 @@ export default function InvoiceDynamicPage({ params }) {
                   setMode("edit");
                   router.push(`/dashboard/Invoices/${rawId}?mode=edit`);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl text-xs font-bold border border-indigo-200/80 transition active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl text-xs font-bold border border-indigo-200/80 transition active:scale-95 cursor-pointer"
               >
                 <Pencil size={14} /> Edit Invoice
               </button>
@@ -285,7 +288,7 @@ export default function InvoiceDynamicPage({ params }) {
                 type="button"
                 onClick={() => handleSave("draft")}
                 disabled={saving}
-                className="px-4.5 py-2.5 bg-white hover:bg-slate-50 active:scale-95 text-slate-700 font-bold text-xs rounded-2xl border border-slate-200/90 transition shadow-xs disabled:opacity-50"
+                className="px-4.5 py-2.5 bg-white hover:bg-slate-50 active:scale-95 text-slate-700 font-bold text-xs rounded-2xl border border-slate-200/90 transition shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 Save Draft
               </button>
@@ -295,7 +298,7 @@ export default function InvoiceDynamicPage({ params }) {
                   handleSave(formData.status === "paid" ? "paid" : "sent")
                 }
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md shadow-indigo-200 transition disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md shadow-indigo-200 transition disabled:opacity-50 cursor-pointer"
               >
                 {saving ? (
                   <Loader2 size={15} className="animate-spin" />
@@ -388,9 +391,17 @@ export default function InvoiceDynamicPage({ params }) {
         </div>
       </div>
 
+      {/* No Client Modal */}
       <NoClientModal
         isOpen={showNoClientModal}
         onClose={() => setShowNoClientModal(false)}
+      />
+
+      {/* Template Selector Modal */}
+      <TemplateSelectorModal
+        isOpen={showTemplateModal}
+        onClose={() => setShowTemplateModal(false)}
+        invoiceId={rawId}
       />
     </div>
   );

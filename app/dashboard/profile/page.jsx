@@ -14,14 +14,19 @@ import {
   Landmark,
   MapPin,
   Sparkles,
+  FileSignature,
+  UploadCloud,
+  Trash2,
+  Globe,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState("personal");
+  const [activeTab, setActiveTab] = useState("personal"); // "personal" | "business" | "banking"
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [signaturePreview, setSignaturePreview] = useState(null);
 
   const [profile, setProfile] = useState({
     name: "",
@@ -29,6 +34,7 @@ export default function ProfilePage() {
     email: "",
     phone: "",
     logoUrl: "",
+    signatureUrl: "",
 
     businessName: "",
     tradeName: "",
@@ -61,6 +67,7 @@ export default function ProfilePage() {
             email: d.email || "",
             phone: d.phone || "",
             logoUrl: d.logoUrl || "",
+            signatureUrl: d.signatureUrl || "",
 
             businessName: d.businessName || "",
             tradeName: d.tradeName || "",
@@ -80,9 +87,8 @@ export default function ProfilePage() {
             pincode: d.address?.pincode || "",
           });
 
-          if (d.logoUrl) {
-            setAvatarPreview(d.logoUrl);
-          }
+          if (d.logoUrl) setAvatarPreview(d.logoUrl);
+          if (d.signatureUrl) setSignaturePreview(d.signatureUrl);
         }
       } catch (err) {
         console.error("Profile load error:", err);
@@ -94,18 +100,18 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
-  const handleAvatarChange = (e) => {
+  const handleFileUpload = (e, field, setPreview) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("Image file size should be less than 2MB");
+      if (file.size > 2.5 * 1024 * 1024) {
+        toast.error("File size must be less than 2.5MB");
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64Data = reader.result;
-        setAvatarPreview(base64Data);
-        setProfile((prev) => ({ ...prev, logoUrl: base64Data }));
+        setPreview(base64Data);
+        setProfile((prev) => ({ ...prev, [field]: base64Data }));
       };
       reader.readAsDataURL(file);
     }
@@ -119,7 +125,7 @@ export default function ProfilePage() {
     if (e && e.preventDefault) e.preventDefault();
 
     if (!profile.name || !profile.email) {
-      toast.error("Name and Email are required");
+      toast.error("Owner Legal Name and Email are required");
       return;
     }
 
@@ -127,9 +133,11 @@ export default function ProfilePage() {
     try {
       const payload = {
         ownerName: profile.name,
+        role: profile.role,
         email: profile.email,
         phone: profile.phone,
         logoUrl: profile.logoUrl || avatarPreview || "",
+        signatureUrl: profile.signatureUrl || signaturePreview || "",
         businessName: profile.businessName || profile.name,
         tradeName: profile.tradeName,
         gstNumber: profile.gstNumber,
@@ -158,7 +166,7 @@ export default function ProfilePage() {
 
       const json = await res.json();
       if (json.success) {
-        toast.success("Profile changes saved to database! 🎉");
+        toast.success("Profile & Signature committed successfully! 🎉");
       } else {
         toast.error(json.message || "Failed to commit profile updates");
       }
@@ -188,12 +196,13 @@ export default function ProfilePage() {
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-gradient-to-br from-indigo-100/60 to-purple-50/40 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          {/* Avatar / Logo Slot */}
           <div className="relative group shrink-0">
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl overflow-hidden border-4 border-white shadow-md bg-slate-100 flex items-center justify-center">
               {avatarPreview ? (
                 <img
                   src={avatarPreview}
-                  alt="Avatar"
+                  alt="Company Logo or Avatar"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -207,19 +216,22 @@ export default function ProfilePage() {
               <input
                 type="file"
                 className="hidden"
-                onChange={handleAvatarChange}
+                onChange={(e) =>
+                  handleFileUpload(e, "logoUrl", setAvatarPreview)
+                }
                 accept="image/*"
               />
             </label>
           </div>
 
+          {/* User Bio Strip */}
           <div className="text-center sm:text-left space-y-2 flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                {profile.name || "User Account"}
+                {profile.businessName || profile.name || "Business Account"}
               </h1>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100/80">
-                <ShieldCheck size={13} /> Verified Account
+                <ShieldCheck size={13} /> Verified Organization
               </span>
             </div>
 
@@ -227,11 +239,12 @@ export default function ProfilePage() {
               {profile.role}
             </p>
             <p className="text-xs text-slate-500 font-medium max-w-md">
-              Manage your personal credentials, GST compliance details, and
-              settlement channels.
+              Manage your company identity, GST compliance parameters,
+              settlement bank coordinates, and official signature.
             </p>
           </div>
 
+          {/* Direct Save Action Button */}
           <button
             type="button"
             onClick={handleSave}
@@ -281,7 +294,7 @@ export default function ProfilePage() {
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Landmark size={14} /> Banking Coordinates
+          <Landmark size={14} /> Banking & Signature
         </button>
       </div>
 
@@ -308,7 +321,7 @@ export default function ProfilePage() {
                 icon={<Sparkles size={15} />}
                 value={profile.role}
                 onChange={(val) => handleInputChange("role", val)}
-                placeholder="e.g. MERN Stack Developer"
+                placeholder="e.g. MERN Stack Developer & Founder"
               />
               <ProfileInput
                 label="Email Address *"
@@ -388,45 +401,104 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Tab 3: Banking Coordinates */}
+        {/* Tab 3: Banking & Digital Signature */}
         {activeTab === "banking" && (
-          <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 animate-in fade-in">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Landmark size={17} className="text-indigo-600" /> Settlement &
-              UPI Information
-            </h2>
+          <div className="space-y-6 animate-in fade-in">
+            {/* Digital Signature Uploader */}
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <FileSignature size={17} className="text-indigo-600" />{" "}
+                  Authorized Digital Signature (PNG)
+                </h2>
+                {signaturePreview && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignaturePreview(null);
+                      setProfile((prev) => ({ ...prev, signatureUrl: "" }));
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
+                  >
+                    <Trash2 size={13} /> Remove
+                  </button>
+                )}
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ProfileInput
-                label="Bank Name"
-                icon={<Landmark size={15} />}
-                value={profile.bankName}
-                onChange={(val) => handleInputChange("bankName", val)}
-                placeholder="e.g. HDFC Bank"
-              />
-              <ProfileInput
-                label="Account Number"
-                icon={<Landmark size={15} />}
-                value={profile.accountNumber}
-                onChange={(val) => handleInputChange("accountNumber", val)}
-                placeholder="e.g. 50200012345678"
-              />
-              <ProfileInput
-                label="IFSC Code"
-                icon={<Landmark size={15} />}
-                value={profile.ifscCode}
-                onChange={(val) =>
-                  handleInputChange("ifscCode", val.toUpperCase())
-                }
-                placeholder="e.g. HDFC0000123"
-              />
-              <ProfileInput
-                label="UPI ID / VPA"
-                icon={<Sparkles size={15} />}
-                value={profile.upiId}
-                onChange={(val) => handleInputChange("upiId", val)}
-                placeholder="e.g. akash@okhdfcbank"
-              />
+              <div className="flex flex-col sm:flex-row items-center gap-5">
+                <div className="w-48 h-24 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                  {signaturePreview ? (
+                    <img
+                      src={signaturePreview}
+                      alt="Digital Signature"
+                      className="w-full h-full object-contain p-2"
+                    />
+                  ) : (
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      No Signature Loaded
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-center sm:text-left flex-1">
+                  <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-xl cursor-pointer transition">
+                    <UploadCloud size={15} /> Upload Transparent PNG Signature
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/webp"
+                      onChange={(e) =>
+                        handleFileUpload(e, "signatureUrl", setSignaturePreview)
+                      }
+                    />
+                  </label>
+                  <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                    Attach a transparent signature PNG. It will appear with an
+                    automated date stamp across all generated tax invoices.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bank Coordinates */}
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5">
+              <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Landmark size={17} className="text-indigo-600" /> Settlement &
+                UPI Information
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <ProfileInput
+                  label="Bank Name"
+                  icon={<Landmark size={15} />}
+                  value={profile.bankName}
+                  onChange={(val) => handleInputChange("bankName", val)}
+                  placeholder="e.g. HDFC Bank"
+                />
+                <ProfileInput
+                  label="Account Number"
+                  icon={<Landmark size={15} />}
+                  value={profile.accountNumber}
+                  onChange={(val) => handleInputChange("accountNumber", val)}
+                  placeholder="e.g. 50200012345678"
+                />
+                <ProfileInput
+                  label="IFSC Code"
+                  icon={<Landmark size={15} />}
+                  value={profile.ifscCode}
+                  onChange={(val) =>
+                    handleInputChange("ifscCode", val.toUpperCase())
+                  }
+                  placeholder="e.g. HDFC0000123"
+                />
+                <ProfileInput
+                  label="UPI ID / VPA"
+                  icon={<Sparkles size={15} />}
+                  value={profile.upiId}
+                  onChange={(val) => handleInputChange("upiId", val)}
+                  placeholder="e.g. akash@okhdfcbank"
+                />
+              </div>
             </div>
           </div>
         )}
