@@ -47,7 +47,7 @@ export async function GET() {
         },
       ]),
 
-      // 2. 6-Month Chart Data
+      // 2. 6-Month Revenue Trend
       Invoice.aggregate([
         { $match: { userId, status: "paid" } },
         {
@@ -59,7 +59,7 @@ export async function GET() {
         { $sort: { _id: 1 } },
       ]),
 
-      // 3. Recent Clients (Selecting companyName & name)
+      // 3. Recent Clients
       Client.find({ userId })
         .sort({ createdAt: -1 })
         .limit(5)
@@ -69,7 +69,7 @@ export async function GET() {
       // 4. Client Count
       Client.countDocuments({ userId }),
 
-      // 5. Recent Payments with Populated Client details
+      // 5. Recent Invoices / Payments
       Invoice.find({ userId })
         .sort({ createdAt: -1 })
         .limit(5)
@@ -79,8 +79,13 @@ export async function GET() {
         )
         .lean(),
 
-      // 6. Tasks
-      Task.find({ userId }).sort({ createdAt: -1 }).limit(10).lean(),
+      // 6. Tasks (Matching both userId & clerkUserId with higher limit)
+      Task.find({
+        $or: [{ userId }, { clerkUserId: userId }],
+      })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean(),
     ]);
 
     const months = [
@@ -97,6 +102,7 @@ export async function GET() {
       "Nov",
       "Dec",
     ];
+
     const formattedChart = chartRaw.map((item) => ({
       month: months[item._id - 1] || `M${item._id}`,
       total: item.total || 0,
