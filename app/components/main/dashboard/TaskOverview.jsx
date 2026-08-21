@@ -18,57 +18,100 @@ export default function TaskOverview() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const statuses = ["Pending", "Due Today", "Completed"];
+  const columnKeys = ["pending", "urgent", "completed"];
 
   const statusConfig = {
-    Pending: {
-      label: "In Progress",
+    pending: {
+      label: "In Progress / Backlog",
       icon: Clock3,
       badge: "bg-amber-50 text-amber-700 border-amber-200/80",
-      accent: "bg-amber-500",
       iconColor: "text-amber-600 bg-amber-50 border-amber-100",
-      emptyMsg: "No pending pipeline tasks",
+      emptyMsg: "No active tasks in pipeline",
     },
-    "Due Today": {
-      label: "Urgent Due",
+    urgent: {
+      label: "Urgent & Reviews",
       icon: AlertCircle,
       badge: "bg-rose-50 text-rose-700 border-rose-200/80",
-      accent: "bg-rose-500",
       iconColor: "text-rose-600 bg-rose-50 border-rose-100",
       emptyMsg: "No urgent deliverables due",
     },
-    Completed: {
+    completed: {
       label: "Completed",
       icon: CheckCircle2,
       badge: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
-      accent: "bg-emerald-500",
       iconColor: "text-emerald-600 bg-emerald-50 border-emerald-100",
       emptyMsg: "No completed tasks yet",
     },
   };
 
   const priorityColors = {
-    High: "bg-rose-50 text-rose-700 border-rose-200/70",
-    Medium: "bg-amber-50 text-amber-700 border-amber-200/70",
-    Low: "bg-emerald-50 text-emerald-700 border-emerald-200/70",
+    urgent: "bg-rose-50 text-rose-700 border-rose-200/70",
+    high: "bg-rose-50 text-rose-700 border-rose-200/70",
+    medium: "bg-amber-50 text-amber-700 border-amber-200/70",
+    low: "bg-emerald-50 text-emerald-700 border-emerald-200/70",
   };
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch("/api/stats");
-        const result = await response.json();
-        if (result?.success) {
-          setTasks(result.data?.tasks || []);
+        // 1. Fetch from /api/stats first
+        const statsRes = await fetch("/api/stats");
+        const statsJson = await statsRes.json();
+
+        if (
+          statsJson?.success &&
+          Array.isArray(statsJson.data?.tasks) &&
+          statsJson.data.tasks.length > 0
+        ) {
+          setTasks(statsJson.data.tasks);
+        } else {
+          // 2. Direct fallback to /api/tasks
+          const taskRes = await fetch("/api/tasks");
+          const taskJson = await taskRes.json();
+          if (taskJson?.success && Array.isArray(taskJson.data)) {
+            setTasks(taskJson.data);
+          }
         }
       } catch (error) {
-        console.error("Task Kanban Fetch Error:", error);
+        console.error("Task Overview Fetch Error:", error);
       } finally {
         setLoading(false);
       }
     };
     fetchTasks();
   }, []);
+
+  // Filter tasks to match both Kanban stages ("todo", "in_progress", "review", "done")
+  const getTasksByColumn = (colKey) => {
+    return tasks.filter((task) => {
+      const s = (task.status || "").toLowerCase();
+      const p = (task.priority || "").toLowerCase();
+
+      if (colKey === "completed") {
+        return s === "done" || s === "completed";
+      }
+
+      if (colKey === "urgent") {
+        return (
+          (p === "urgent" || s === "review" || s === "due today") &&
+          s !== "done" &&
+          s !== "completed"
+        );
+      }
+
+      if (colKey === "pending") {
+        return (
+          (s === "todo" || s === "in_progress" || s === "pending" || !s) &&
+          p !== "urgent" &&
+          s !== "done" &&
+          s !== "completed" &&
+          s !== "review"
+        );
+      }
+
+      return false;
+    });
+  };
 
   if (loading) {
     return (
@@ -91,7 +134,7 @@ export default function TaskOverview() {
 
   return (
     <div className="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-5 sm:p-6 lg:p-8 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-300">
-      {/* Header Section */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-2xl bg-linear-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-100 shrink-0">
@@ -114,29 +157,26 @@ export default function TaskOverview() {
           </span>
           <Link
             href="/dashboard/tasks"
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline inline-flex items-center gap-1"
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
           >
-            <span>Task Board</span>
+            <span>Full Task Board</span>
             <ArrowUpRight size={14} />
           </Link>
         </div>
       </div>
 
-      {/* Kanban Columns */}
+      {/* 3 Overview Columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-        {statuses.map((status) => {
-          const filteredTasks = tasks.filter(
-            (t) => (t.status || "").toLowerCase() === status.toLowerCase(),
-          );
-          const config = statusConfig[status];
+        {columnKeys.map((key) => {
+          const columnTasks = getTasksByColumn(key);
+          const config = statusConfig[key];
           const StatusIcon = config.icon;
 
           return (
             <div
-              key={status}
+              key={key}
               className="bg-slate-50/60 border border-slate-200/70 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 hover:bg-slate-50 hover:border-slate-300"
             >
-              {/* Column Header */}
               <div>
                 <div className="flex items-center justify-between pb-3.5 border-b border-slate-200/60 mb-3.5">
                   <div className="flex items-center gap-2.5">
@@ -153,22 +193,19 @@ export default function TaskOverview() {
                   <span
                     className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${config.badge}`}
                   >
-                    {filteredTasks.length}
+                    {columnTasks.length}
                   </span>
                 </div>
 
-                {/* Task Cards Container */}
+                {/* Cards List */}
                 <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                  {filteredTasks.length > 0 ? (
-                    filteredTasks.map((task) => {
+                  {columnTasks.length > 0 ? (
+                    columnTasks.map((task) => {
+                      const priorityKey = (
+                        task.priority || "medium"
+                      ).toLowerCase();
                       const priorityStyle =
-                        priorityColors[task.priority] || priorityColors.Medium;
-                      const dueDate = task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                          })
-                        : null;
+                        priorityColors[priorityKey] || priorityColors.medium;
 
                       return (
                         <div
@@ -177,26 +214,26 @@ export default function TaskOverview() {
                         >
                           <div className="flex items-start justify-between gap-2">
                             <span className="text-xs font-bold text-slate-900 group-hover/card:text-indigo-600 transition-colors leading-snug line-clamp-2">
-                              {task.title || "Untitled Milestone"}
+                              {task.title || "Untitled Task"}
                             </span>
                             <span
                               className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider shrink-0 ${priorityStyle}`}
                             >
-                              {task.priority || "Normal"}
+                              {task.priority || "Medium"}
                             </span>
                           </div>
 
                           <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold pt-1 border-t border-slate-100">
-                            <span className="truncate max-w-[130px] sm:max-w-[110px]">
-                              {task.clientName || task.category || "General"}
+                            <span className="truncate max-w-[130px] sm:max-w-[110px] text-slate-600 font-medium">
+                              {task.tag || "General"}
                             </span>
-                            {dueDate && (
+                            {task.dueDate && (
                               <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 shrink-0">
                                 <CalendarDays
                                   size={11}
                                   className="text-indigo-500"
                                 />
-                                {dueDate}
+                                {task.dueDate}
                               </span>
                             )}
                           </div>
@@ -204,7 +241,6 @@ export default function TaskOverview() {
                       );
                     })
                   ) : (
-                    /* Empty Column Slate */
                     <div className="py-8 px-4 rounded-xl bg-white/70 border border-dashed border-slate-200 text-center space-y-1.5">
                       <p className="text-xs text-slate-600 font-bold">
                         {config.emptyMsg}
@@ -224,7 +260,7 @@ export default function TaskOverview() {
                   className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-white transition-all border border-transparent hover:border-slate-200"
                 >
                   <Plus size={14} />
-                  <span>Add Action</span>
+                  <span>Open Task Board</span>
                 </Link>
               </div>
             </div>
