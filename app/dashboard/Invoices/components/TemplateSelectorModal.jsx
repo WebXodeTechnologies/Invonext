@@ -113,7 +113,7 @@ export default function TemplateSelectorModal({ isOpen, onClose, invoiceId }) {
                   <div className="h-10 bg-slate-50 rounded-lg border border-slate-100 p-1.5 flex flex-col justify-between">
                     <div className="flex justify-between items-center">
                       <div
-                        className={`h-2 w-8 rounded-full bg-gradient-to-r ${tmpl.gradient}`}
+                        className={`h-2 w-8 rounded-full bg-linear-to-r ${tmpl.gradient}`}
                       />
                       <div className="h-1.5 w-4 bg-slate-200 rounded-full" />
                     </div>
