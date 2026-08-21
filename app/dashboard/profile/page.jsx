@@ -193,7 +193,7 @@ export default function ProfilePage() {
     <div className="max-w-5xl mx-auto space-y-8 pb-16 animate-in fade-in duration-300">
       {/* Top Banner & Avatar Header */}
       <div className="relative overflow-hidden rounded-3xl bg-white/95 backdrop-blur-xl p-7 sm:p-9 border border-slate-200/80 shadow-xs">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-gradient-to-br from-indigo-100/60 to-purple-50/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-linear-to-br from-indigo-100/60 to-purple-50/40 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar / Logo Slot */}
